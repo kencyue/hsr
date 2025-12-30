@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高鐵時刻表 - 分享優化版</title>
+    <title>高鐵時刻表 - 寬度自動適配版</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -45,23 +45,18 @@
         .app-header h1 { margin: 0; font-size: 1.2rem; color: var(--text-dark); display: flex; align-items: center; justify-content: center; gap: 8px; }
         
         .app-content { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scrollbar-width: none; }
-        .app-content::-webkit-scrollbar { display: none; }
         .app-footer { padding: 15px; border-top: 1px solid var(--border-color); background: white; z-index: 10; }
 
         .section-title { font-size: 0.9rem; color: #636e72; margin-bottom: 8px; font-weight: 500; }
         .station-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .station-bubble { background: #f1f2f6; color: var(--text-dark); height: var(--bubble-size); display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: 0.2s; user-select: none; border: 1px solid transparent; }
+        .station-bubble { background: #f1f2f6; color: var(--text-dark); height: var(--bubble-size); display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; cursor: pointer; border: 1px solid transparent; }
         .station-bubble.active { background: var(--primary); color: white; font-weight: bold; }
         
         .swap-wrapper { display: flex; justify-content: center; margin: -5px 0; position: relative; z-index: 5; }
         .swap-btn { background: white; border: 1px solid var(--border-color); color: var(--primary); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         
-        input.flatpickr-input, select { 
-            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; 
-            background: #f8f9fa; font-size: 1rem; outline: none; color: #333;
-        }
-
-        .btn-now { background: #eee; border: 1px solid var(--border-color); color: #555; padding: 0 15px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; font-weight: 500; }
+        input.flatpickr-input, select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: #f8f9fa; font-size: 1rem; color: #333; }
+        .btn-now { background: #eee; border: 1px solid var(--border-color); color: #555; padding: 0 15px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; font-weight: 500; }
         .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
@@ -71,14 +66,13 @@
         .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
         #view-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; cursor: pointer; transition: 0.2s; }
+        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; cursor: pointer; }
         .result-card.selected { background: var(--highlight-light); border-color: var(--primary); }
-
         .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; }
         .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); }
         .tag-base { padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; margin-right: 8px; font-weight: 500; }
-        .tag-stop { background: #eee; color: #666; }
         .tag-direct { background: var(--danger); color: white; }
+        .tag-stop { background: #eee; color: #666; }
 
         #view-tv { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--tv-bg); }
         #view-tv.active { display: flex; }
@@ -87,19 +81,20 @@
         .tv-header-bar.theme-north { background: var(--tv-header-north); border-bottom: 3px solid #0099ff; }
         .tv-header-bar.theme-south { background: var(--tv-header-south); border-bottom: 3px solid #2ecc71; }
         
-        .tv-scroll-area { flex: 1; overflow-y: auto; }
-        .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 85px; cursor: pointer; }
+        .tv-scroll-area { flex: 1; overflow-y: auto; scrollbar-width: none; }
+        .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 90px; cursor: pointer; }
         .tv-row.selected { background: var(--highlight-tv); }
-
         .tv-info-col { padding: 15px; display: grid; grid-template-columns: 80px 100px 80px; align-items: center; border-right: 1px solid #333; }
         .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; }
-        .tv-map-col { position: relative; display: flex; align-items: center; padding: 10px 20px; overflow-x: auto; }
-        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 400px; position: relative; padding: 10px 0 15px 0; }
-        .map-line { position: absolute; top: 72%; left: 5px; right: 5px; height: 2px; background: var(--tv-line); }
-        .station-point { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 32px; }
-        .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 42px; margin-bottom: 4px; }
+        
+        /* 修正寬度問題：在一般視角下允許捲動，但在截圖模式下強制展開 */
+        .tv-map-col { position: relative; display: flex; align-items: center; padding: 10px 15px; overflow-x: auto; scrollbar-width: none; }
+        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 480px; position: relative; padding: 10px 0 15px 0; }
+        .map-line { position: absolute; top: 72%; left: 8px; right: 8px; height: 2px; background: var(--tv-line); }
+        .station-point { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .st-name { font-size: 0.65rem; color: #888; writing-mode: vertical-rl; height: 42px; margin-bottom: 4px; white-space: nowrap; }
         .st-name.current { color: var(--tv-text-yellow); font-weight: bold; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tv-dot-off); }
+        .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--tv-dot-off); }
         .dot.stop { border: 1px solid #fff; }
         .theme-north .dot.stop { background: var(--tv-dot-north); box-shadow: 0 0 8px var(--tv-dot-north); }
         .theme-south .dot.stop { background: var(--tv-dot-south); box-shadow: 0 0 8px var(--tv-dot-south); }
@@ -112,6 +107,10 @@
             .tv-row { grid-template-columns: 1fr; min-height: auto; }
             .tv-info-col { border-right: none; border-bottom: 1px solid #333; }
         }
+
+        /* 專門為截圖準備的隱藏樣式 */
+        #screenshot-temp-container .tv-row { grid-template-columns: 200px 1fr !important; min-width: 700px; }
+        #screenshot-temp-container .map-container { min-width: 500px !important; }
     </style>
 </head>
 <body>
@@ -157,7 +156,7 @@
             <div style="display:flex; gap:8px;">
                 <button class="toggle-btn active" id="btn-list" onclick="switchView('list')">列表</button>
                 <button class="toggle-btn" id="btn-tv" onclick="switchView('tv')">電視牆</button>
-                <button class="share-btn" id="shareBtn" onclick="shareAsImage()"><i class="fas fa-share-nodes"></i> 分享畫面</button>
+                <button class="share-btn" id="shareBtn" onclick="shareAsImage()"><i class="fas fa-share-nodes"></i> 分享</button>
             </div>
             <button onclick="closeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
         </div>
@@ -231,24 +230,19 @@
         const isSouth = currentStart < currentEnd;
         const theme = isSouth ? 'theme-south' : 'theme-north';
         document.getElementById('tv-header').className = `tv-header-bar ${theme}`;
-        document.getElementById('tv-header').innerHTML = `<span>${isSouth ? '南下' : '北上'}</span><span style="font-size:0.8rem;">${new Date().toLocaleTimeString()} UPDATED</span>`;
+        document.getElementById('tv-header').innerHTML = `<span>${isSouth ? '南下' : '北上'}</span><span style="font-size:0.7rem;">${new Date().toLocaleTimeString()}</span>`;
         const sortedKeys = Object.keys(stations).map(Number).sort((a,b) => isSouth ? a-b : b-a);
 
         trains.slice(0, limit === -1 ? trains.length : limit).forEach((t, index) => {
             const actualStops = (t.station_info || []).filter(s => s.departure_time && s.departure_time !== "--:--");
             const stopIds = actualStops.map(s => parseInt(s.station_no));
             const stopNames = actualStops.filter(s => { const id = parseInt(s.station_no); return isSouth ? (id > currentStart && id < currentEnd) : (id < currentStart && id > currentEnd); }).map(s => s.name);
-            const isDirect = stopNames.length === 0;
 
             const card = document.createElement('div');
             card.className = 'result-card';
             card.onclick = () => card.classList.toggle('selected');
-            card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="train-id-pill">${t.id || t.train_no}</span>
-                <div class="train-times">${t.departure_time} ➝ ${t.destination_time || t.arrival_time}</div>
-                </div><div style="margin-top:10px; font-size:0.85rem; color:#666;">
-                ${isDirect ? '<span class="tag-base tag-direct">直達</span>' : '<span class="tag-base tag-stop">停靠</span>'} ${stopNames.join(' > ')}
-                </div>`;
+            card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span class="train-id-pill">${t.id || t.train_no}</span><div class="train-times">${t.departure_time} ➝ ${t.destination_time || t.arrival_time}</div></div>
+                <div style="margin-top:10px; font-size:0.85rem; color:#666;">${stopNames.length === 0 ? '<span class="tag-base tag-direct">直達</span>' : '<span class="tag-base tag-stop">停靠</span>'} ${stopNames.join(' > ')}</div>`;
             list.appendChild(card);
 
             const row = document.createElement('div');
@@ -256,13 +250,9 @@
             row.onclick = () => row.classList.toggle('selected');
             let mapNodes = '';
             sortedKeys.forEach(sid => {
-                const isStop = stopIds.includes(sid);
-                mapNodes += `<div class="station-point">
-                    <div class="st-name ${sid === currentStart || sid === currentEnd ? 'current' : ''}">${stations[sid].substring(0,2)}</div>
-                    <div class="dot ${isStop ? 'stop' : ''}"></div>
-                    </div>`;
+                mapNodes += `<div class="station-point"><div class="st-name ${sid === currentStart || sid === currentEnd ? 'current' : ''}">${stations[sid].substring(0,2)}</div><div class="dot ${stopIds.includes(sid) ? 'stop' : ''}"></div></div>`;
             });
-            row.innerHTML = `<div class="tv-info-col"><div style="color:white;">${t.id || t.train_no}</div><div style="color:white;">${stations[currentEnd]}</div><div class="tv-time">${t.departure_time}</div></div>
+            row.innerHTML = `<div class="tv-info-col"><div style="color:white; font-family:Roboto;">${t.id || t.train_no}</div><div style="color:white;">${stations[currentEnd]}</div><div class="tv-time">${t.departure_time}</div></div>
                 <div class="tv-map-col ${theme}"><div class="map-container"><div class="map-line"></div>${mapNodes}</div></div>`;
             tv.appendChild(row);
         });
@@ -279,72 +269,65 @@
 
     function closeModal() { document.getElementById('resultModal').classList.remove('modal-active'); }
 
-    // --- 修正後的分享與截圖邏輯 ---
     async function shareAsImage() {
         const btn = document.getElementById('shareBtn');
         const container = document.getElementById(currentView === 'list' ? 'view-list' : 'tv-rows');
         const selectedItems = container.querySelectorAll('.selected');
+        const itemsToCapture = selectedItems.length > 0 ? Array.from(selectedItems) : Array.from(container.children);
         
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
+        btn.innerHTML = '處理中...';
         
-        let targetArea;
-        if (selectedItems.length > 0) {
-            targetArea = document.createElement('div');
-            targetArea.style.padding = '20px';
-            targetArea.style.background = (currentView === 'tv') ? '#0f0f0f' : 'white';
-            // 強制設定寬度為 TV 內容寬度，避免截斷
-            targetArea.style.width = (currentView === 'tv') ? '500px' : '375px'; 
-            
-            if (currentView === 'tv') {
-                const headerClone = document.getElementById('tv-header').cloneNode(true);
-                targetArea.appendChild(headerClone);
-            }
-            selectedItems.forEach(item => {
-                const clone = item.cloneNode(true);
-                clone.classList.remove('selected');
-                // 修正複製出來的元素在截圖時的寬度顯示
-                if (currentView === 'tv') clone.style.gridTemplateColumns = '180px 1fr';
-                targetArea.appendChild(clone);
-            });
-            document.body.appendChild(targetArea);
-            targetArea.style.position = 'absolute';
-            targetArea.style.left = '-9999px';
-        } else {
-            targetArea = document.getElementById('capture-area');
+        // 核心修正：創建一個寬度絕對足夠的臨時容器
+        const tempContainer = document.createElement('div');
+        tempContainer.id = "screenshot-temp-container";
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.width = currentView === 'tv' ? '800px' : '400px'; // 電視牆給予大寬度
+        tempContainer.style.background = currentView === 'tv' ? '#0f0f0f' : 'white';
+        tempContainer.style.padding = '20px';
+
+        if (currentView === 'tv') {
+            const headerClone = document.getElementById('tv-header').cloneNode(true);
+            tempContainer.appendChild(headerClone);
         }
 
+        itemsToCapture.forEach(item => {
+            const clone = item.cloneNode(true);
+            clone.classList.remove('selected');
+            // 強制展開所有捲軸區域
+            const mapCol = clone.querySelector('.tv-map-col');
+            if (mapCol) {
+                mapCol.style.overflow = 'visible';
+                mapCol.style.width = 'auto';
+            }
+            tempContainer.appendChild(clone);
+        });
+
+        document.body.appendChild(tempContainer);
+
         try {
-            const canvas = await html2canvas(targetArea, { 
-                backgroundColor: getComputedStyle(targetArea).backgroundColor, 
+            const canvas = await html2canvas(tempContainer, { 
+                backgroundColor: currentView === 'tv' ? '#0f0f0f' : '#ffffff',
                 scale: 2,
-                useCORS: true,
-                // 重要：確保截到超出畫面的電視牆
-                windowWidth: targetArea.scrollWidth + 100 
+                logging: false,
+                width: tempContainer.offsetWidth,
+                windowWidth: tempContainer.offsetWidth
             });
 
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             const file = new File([blob], 'THSR_Schedule.png', { type: 'image/png' });
 
-            // 嘗試呼叫原生分享
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: '高鐵時刻表',
-                    text: '這是我選好的班次'
-                });
+                await navigator.share({ files: [file], title: '高鐵時刻', text: '分享班次資訊' });
             } else {
-                // 不支援分享則自動下載
                 const link = document.createElement('a');
                 link.download = `THSR_${Date.now()}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
             }
-        } catch (e) {
-            console.error(e);
-            alert("操作失敗");
-        } finally {
-            if (selectedItems.length > 0) document.body.removeChild(targetArea);
-            btn.innerHTML = '<i class="fas fa-share-nodes"></i> 分享畫面';
+        } catch (e) { alert("失敗"); } finally {
+            document.body.removeChild(tempContainer);
+            btn.innerHTML = '<i class="fas fa-share-nodes"></i> 分享';
         }
     }
 
