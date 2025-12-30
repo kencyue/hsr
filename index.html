@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高鐵時刻表 - 精準分享版</title>
+    <title>高鐵時刻表 - 分享優化版</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -33,8 +33,8 @@
             --tv-line: #555;
             --tv-dot-north: #3498db;
             --tv-dot-south: #2ecc71;
-            --highlight-light: rgba(255, 102, 0, 0.08); /* 列表 Highlight */
-            --highlight-tv: rgba(255, 193, 7, 0.15);    /* 電視牆 Highlight */
+            --highlight-light: rgba(255, 102, 0, 0.08);
+            --highlight-tv: rgba(255, 193, 7, 0.15);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -71,9 +71,7 @@
         .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
         #view-list { flex: 1; overflow-y: auto; padding: 15px; }
-        
-        /* 列表選中樣式 */
-        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; cursor: pointer; transition: background 0.2s; }
+        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; cursor: pointer; transition: 0.2s; }
         .result-card.selected { background: var(--highlight-light); border-color: var(--primary); }
 
         .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; }
@@ -90,17 +88,15 @@
         .tv-header-bar.theme-south { background: var(--tv-header-south); border-bottom: 3px solid #2ecc71; }
         
         .tv-scroll-area { flex: 1; overflow-y: auto; }
-        
-        /* 電視牆選中樣式 */
-        .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 85px; cursor: pointer; transition: background 0.2s; }
+        .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 85px; cursor: pointer; }
         .tv-row.selected { background: var(--highlight-tv); }
 
         .tv-info-col { padding: 15px; display: grid; grid-template-columns: 80px 100px 80px; align-items: center; border-right: 1px solid #333; }
         .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; }
         .tv-map-col { position: relative; display: flex; align-items: center; padding: 10px 20px; overflow-x: auto; }
-        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 350px; position: relative; padding: 10px 0 15px 0; }
+        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 400px; position: relative; padding: 10px 0 15px 0; }
         .map-line { position: absolute; top: 72%; left: 5px; right: 5px; height: 2px; background: var(--tv-line); }
-        .station-point { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 28px; }
+        .station-point { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 32px; }
         .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 42px; margin-bottom: 4px; }
         .st-name.current { color: var(--tv-text-yellow); font-weight: bold; }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tv-dot-off); }
@@ -161,7 +157,7 @@
             <div style="display:flex; gap:8px;">
                 <button class="toggle-btn active" id="btn-list" onclick="switchView('list')">列表</button>
                 <button class="toggle-btn" id="btn-tv" onclick="switchView('tv')">電視牆</button>
-                <button class="share-btn" id="shareBtn" onclick="shareAsImage()">分享畫面</button>
+                <button class="share-btn" id="shareBtn" onclick="shareAsImage()"><i class="fas fa-share-nodes"></i> 分享畫面</button>
             </div>
             <button onclick="closeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
         </div>
@@ -201,7 +197,7 @@
         };
         renderGrid('startGrid', 'start');
         renderGrid('endGrid', 'end');
-        fp = flatpickr("#query_time", { enableTime: true, dateFormat: "Y-m-d H:i", locale: "zh_tw", defaultDate: new Date(), time_24hr: true });
+        fp = flatpickr("#query_time", { enableTime: true, dateFormat: "Y-m-d H:i", locale: "zh_tw", defaultDate: new Date(), time_24hr: true, disableMobile: "true" });
     }
 
     function updateUI() {
@@ -244,10 +240,8 @@
             const stopNames = actualStops.filter(s => { const id = parseInt(s.station_no); return isSouth ? (id > currentStart && id < currentEnd) : (id < currentStart && id > currentEnd); }).map(s => s.name);
             const isDirect = stopNames.length === 0;
 
-            // 列表項目
             const card = document.createElement('div');
             card.className = 'result-card';
-            card.dataset.index = index;
             card.onclick = () => card.classList.toggle('selected');
             card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="train-id-pill">${t.id || t.train_no}</span>
@@ -257,10 +251,8 @@
                 </div>`;
             list.appendChild(card);
 
-            // 電視牆項目
             const row = document.createElement('div');
             row.className = 'tv-row';
-            row.dataset.index = index;
             row.onclick = () => row.classList.toggle('selected');
             let mapNodes = '';
             sortedKeys.forEach(sid => {
@@ -287,55 +279,72 @@
 
     function closeModal() { document.getElementById('resultModal').classList.remove('modal-active'); }
 
-    // --- 修正後的分享邏輯 ---
+    // --- 修正後的分享與截圖邏輯 ---
     async function shareAsImage() {
         const btn = document.getElementById('shareBtn');
         const container = document.getElementById(currentView === 'list' ? 'view-list' : 'tv-rows');
         const selectedItems = container.querySelectorAll('.selected');
         
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 截圖中...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
         
         let targetArea;
-        let originalParent = null;
-
         if (selectedItems.length > 0) {
-            // 如果有選中，創建臨時容器
             targetArea = document.createElement('div');
-            targetArea.style.padding = '15px';
+            targetArea.style.padding = '20px';
             targetArea.style.background = (currentView === 'tv') ? '#0f0f0f' : 'white';
-            targetArea.style.width = container.offsetWidth + 'px';
+            // 強制設定寬度為 TV 內容寬度，避免截斷
+            targetArea.style.width = (currentView === 'tv') ? '500px' : '375px'; 
             
-            // 如果是電視牆，加上標題列
             if (currentView === 'tv') {
                 const headerClone = document.getElementById('tv-header').cloneNode(true);
                 targetArea.appendChild(headerClone);
             }
-
             selectedItems.forEach(item => {
                 const clone = item.cloneNode(true);
-                clone.classList.remove('selected'); // 截圖時移除選中顏色更乾淨
+                clone.classList.remove('selected');
+                // 修正複製出來的元素在截圖時的寬度顯示
+                if (currentView === 'tv') clone.style.gridTemplateColumns = '180px 1fr';
                 targetArea.appendChild(clone);
             });
-            
             document.body.appendChild(targetArea);
-            targetArea.style.position = 'fixed';
-            targetArea.style.top = '-9999px';
+            targetArea.style.position = 'absolute';
+            targetArea.style.left = '-9999px';
         } else {
-            // 沒選中，截取整個區域
             targetArea = document.getElementById('capture-area');
         }
 
         try {
-            const canvas = await html2canvas(targetArea, { backgroundColor: getComputedStyle(targetArea).backgroundColor, scale: 2 });
-            const link = document.createElement('a');
-            link.download = `THSR_Share.png`;
-            link.href = canvas.toDataURL();
-            link.click();
+            const canvas = await html2canvas(targetArea, { 
+                backgroundColor: getComputedStyle(targetArea).backgroundColor, 
+                scale: 2,
+                useCORS: true,
+                // 重要：確保截到超出畫面的電視牆
+                windowWidth: targetArea.scrollWidth + 100 
+            });
+
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const file = new File([blob], 'THSR_Schedule.png', { type: 'image/png' });
+
+            // 嘗試呼叫原生分享
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: '高鐵時刻表',
+                    text: '這是我選好的班次'
+                });
+            } else {
+                // 不支援分享則自動下載
+                const link = document.createElement('a');
+                link.download = `THSR_${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            }
         } catch (e) {
-            alert("分享失敗");
+            console.error(e);
+            alert("操作失敗");
         } finally {
             if (selectedItems.length > 0) document.body.removeChild(targetArea);
-            btn.innerHTML = '分享畫面';
+            btn.innerHTML = '<i class="fas fa-share-nodes"></i> 分享畫面';
         }
     }
 
