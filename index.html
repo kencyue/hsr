@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高鐵時刻表 - 所見即所得版</title>
+    <title>高鐵時刻表 - 精準對齊版</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -89,26 +89,27 @@
         
         .tv-scroll-area { flex: 1; overflow-y: auto; }
         
-        /* RWD 修正：讓電視牆自動適應寬度，不產生捲軸 */
         .tv-row { display: grid; grid-template-columns: 240px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 85px; cursor: pointer; }
         .tv-row.selected { background: var(--highlight-tv); }
 
-        .tv-info-col { padding: 15px; display: grid; grid-template-columns: 80px 100px 70px; align-items: center; border-right: 1px solid #333; }
-        .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; }
+        /* 左側資訊欄：調整 Grid 比例以容納更長的站名組合 */
+        .tv-info-col { padding: 15px; display: grid; grid-template-columns: 70px 1fr 70px; align-items: center; border-right: 1px solid #333; gap: 5px; }
+        .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; text-align: right; }
         
-        /* 關鍵：Flex 佈局，隱藏溢出 */
         .tv-map-col { position: relative; display: flex; align-items: center; padding: 10px 5px; overflow: hidden; }
         .map-container { 
             display: flex; 
             justify-content: space-between; 
             width: 100%; 
-            min-width: auto; /* 移除最小寬度限制 */
+            min-width: auto; 
             position: relative; 
             padding: 10px 0 15px 0; 
         }
-        .map-line { position: absolute; top: 72%; left: 0; right: 0; height: 2px; background: var(--tv-line); }
+
+        /* --- 修正：使用精確的像素定位線條，確保對齊圓心 --- */
+        /* 計算公式：padding-top(10px) + st-name height(42px) + margin-bottom(4px) + dot radius(4px) = 60px */
+        .map-line { position: absolute; top: 60px; left: 0; right: 0; height: 2px; background: var(--tv-line); }
         
-        /* 關鍵：flex: 1 讓站點自動平分寬度 */
         .station-point { 
             position: relative; 
             z-index: 1; 
@@ -284,7 +285,12 @@
                     <div class="dot ${isStop ? 'stop' : ''}"></div>
                     </div>`;
             });
-            row.innerHTML = `<div class="tv-info-col"><div style="color:white;">${t.id || t.train_no}</div><div style="color:white;">${stations[currentEnd]}</div><div class="tv-time">${t.departure_time}</div></div>
+            // --- 修正：顯示 起迄站 ---
+            row.innerHTML = `<div class="tv-info-col">
+                <div style="color:white;">${t.id || t.train_no}</div>
+                <div style="color:white; font-size:0.9rem; white-space:nowrap;">${stations[currentStart]}➝${stations[currentEnd]}</div>
+                <div class="tv-time">${t.departure_time}</div>
+                </div>
                 <div class="tv-map-col ${theme}"><div class="map-container"><div class="map-line"></div>${mapNodes}</div></div>`;
             tv.appendChild(row);
         });
@@ -301,7 +307,6 @@
 
     function closeModal() { document.getElementById('resultModal').classList.remove('modal-active'); }
 
-    // --- 修正後的截圖邏輯：寬度跟隨螢幕 ---
     async function shareAsImage() {
         const btn = document.getElementById('shareBtn');
         const container = document.getElementById(currentView === 'list' ? 'view-list' : 'tv-rows');
@@ -311,7 +316,7 @@
         
         const tempContainer = document.createElement('div');
         tempContainer.style.background = (currentView === 'tv') ? '#0f0f0f' : 'white';
-        // 關鍵修正：寬度設為與目前容器一樣寬，實現「所見即所得」
+        // 修正：截圖寬度 = 螢幕寬度 (所見即所得)
         tempContainer.style.width = container.offsetWidth + 'px';
         tempContainer.style.padding = '20px';
         
@@ -336,7 +341,7 @@
         try {
             const canvas = await html2canvas(tempContainer, { 
                 backgroundColor: getComputedStyle(tempContainer).backgroundColor, 
-                scale: 2, // 保持 2 倍解析度讓圖片清晰
+                scale: 2, 
                 useCORS: true
             });
 
