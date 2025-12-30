@@ -1,4 +1,9 @@
 {
   "version": 2,
-  "cleanUrls": true
+  "rewrites": [
+    {
+      "source": "/api/thsr",
+      "destination": "https://superiorapis-creator.cteam.com.tw/manager/feature/proxy/9521ab51a9e8/pub_9521b06baee0"
+    }
+  ]
 }
