@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高鐵時刻表 - 優化視覺版</title>
+    <title>高鐵時刻表 - 視覺修正版</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -18,7 +18,7 @@
     <style>
         :root {
             --primary: #ff6600;
-            --danger: #d63031; /* 直達車使用的紅色 */
+            --danger: #d63031;
             --bg-color: #f8f9fa;
             --text-dark: #2d3436;
             --border-color: #dfe6e9;
@@ -75,11 +75,10 @@
         .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
         #view-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; position: relative; }
+        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; }
         .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; }
         .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); }
 
-        /* 標籤樣式 */
         .tag-base { padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; margin-right: 8px; font-weight: 500; }
         .tag-stop { background: #eee; color: #666; }
         .tag-direct { background: var(--danger); color: white; box-shadow: 0 2px 4px rgba(214, 48, 49, 0.3); }
@@ -92,16 +91,19 @@
         .tv-header-bar.theme-south { background: var(--tv-header-south); border-bottom: 3px solid #2ecc71; }
         
         .tv-scroll-area { flex: 1; overflow-y: auto; }
-        .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); }
-        .tv-info-col { padding: 12px 15px; display: grid; grid-template-columns: 80px 100px 80px; align-items: center; border-right: 1px solid #333; }
+        
+        /* 修正高度與邊界溢出 */
+        .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 85px; } 
+        .tv-info-col { padding: 15px; display: grid; grid-template-columns: 80px 100px 80px; align-items: center; border-right: 1px solid #333; }
         .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; }
-        .tv-map-col { position: relative; display: flex; align-items: center; padding: 0 15px; overflow-x: auto; }
-        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 350px; position: relative; padding-top: 10px; }
-        .map-line { position: absolute; top: 78%; left: 5px; right: 5px; height: 2px; background: var(--tv-line); }
+        
+        .tv-map-col { position: relative; display: flex; align-items: center; padding: 10px 20px; overflow-x: auto; }
+        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 350px; position: relative; padding: 10px 0 15px 0; }
+        .map-line { position: absolute; top: 72%; left: 5px; right: 5px; height: 2px; background: var(--tv-line); }
         .station-point { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 28px; }
-        .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 42px; }
-        .st-name.current { color: var(--tv-text-yellow); font-weight: bold; text-shadow: 0 0 5px rgba(255, 193, 7, 0.5); }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tv-dot-off); margin-top: 6px; }
+        .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 42px; margin-bottom: 4px; }
+        .st-name.current { color: var(--tv-text-yellow); font-weight: bold; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tv-dot-off); }
         .dot.stop { border: 1px solid #fff; }
         .theme-north .dot.stop { background: var(--tv-dot-north); box-shadow: 0 0 8px var(--tv-dot-north); }
         .theme-south .dot.stop { background: var(--tv-dot-south); box-shadow: 0 0 8px var(--tv-dot-south); }
@@ -111,8 +113,9 @@
         .share-btn { background: #00b894; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 
         @media (max-width: 650px) {
-            .tv-row { grid-template-columns: 1fr; }
-            .tv-info-col { border-right: none; border-bottom: 1px solid #333; }
+            .tv-row { grid-template-columns: 1fr; min-height: auto; }
+            .tv-info-col { border-right: none; border-bottom: 1px solid #333; padding: 10px 15px; }
+            .tv-map-col { padding: 15px 20px 25px 20px; }
         }
     </style>
 </head>
@@ -128,16 +131,13 @@
             <div class="section-title">出發站</div>
             <div class="station-grid" id="startGrid"></div>
         </div>
-
         <div class="swap-wrapper">
             <div class="swap-btn" onclick="swapStations()"><i class="fas fa-exchange-alt" style="transform: rotate(90deg);"></i></div>
         </div>
-
         <div>
             <div class="section-title">抵達站</div>
             <div class="station-grid" id="endGrid"></div>
         </div>
-
         <div style="display:flex; gap:10px;">
             <div style="flex:2; display:flex; gap:8px;">
                 <input type="text" id="query_time">
@@ -189,9 +189,7 @@
         7: "台中", 8: "彰化", 9: "雲林", 10: "嘉義", 11: "台南", 12: "左營"
     };
 
-    let currentStart = 0;
-    let currentEnd = 0;
-    let fp;
+    let currentStart = 0, currentEnd = 0, fp;
 
     function init() {
         const renderGrid = (id, type) => {
@@ -255,10 +253,13 @@
                 headers: { 'token': TOKEN, 'Content-Type': 'application/json' }
             });
 
+            // --- 修正 2：每次查詢強制回到列表視圖 ---
+            switchView('list');
+            
             renderResults(response.data);
             document.getElementById('resultModal').classList.add('modal-active');
         } catch (e) {
-            alert("連線失敗，請確認部署環境");
+            alert("連線失敗");
         } finally {
             btn.disabled = false;
             btn.textContent = "查詢班次";
@@ -283,17 +284,13 @@
         trains.slice(0, limit === -1 ? trains.length : limit).forEach(t => {
             const actualStops = (t.station_info || []).filter(s => s.departure_time && s.departure_time !== "" && s.departure_time !== "--:--");
             const stopIds = actualStops.map(s => parseInt(s.station_no));
-            
             const stopNames = actualStops.filter(s => {
                 const id = parseInt(s.station_no);
                 return isSouth ? (id > currentStart && id < currentEnd) : (id < currentStart && id > currentEnd);
             }).map(s => s.name);
 
-            // --- 列表優化：直達車紅色標籤 ---
             const isDirect = stopNames.length === 0;
-            const tagHtml = isDirect 
-                ? `<span class="tag-base tag-direct">直達</span>` 
-                : `<span class="tag-base tag-stop">停靠</span>`;
+            const tagHtml = isDirect ? `<span class="tag-base tag-direct">直達</span>` : `<span class="tag-base tag-stop">停靠</span>`;
 
             list.innerHTML += `
                 <div class="result-card">
@@ -306,13 +303,10 @@
                     </div>
                 </div>`;
 
-            // --- 電視牆優化：起訖站標顏色 ---
             let mapNodes = '';
             sortedKeys.forEach(sid => {
                 const isStationAtStop = stopIds.includes(sid);
-                // 只要是起站或迄站，就套用點亮顏色樣式
                 const isCurrentRange = (sid === currentStart || sid === currentEnd);
-                
                 mapNodes += `
                     <div class="station-point">
                         <div class="st-name ${isCurrentRange ? 'current' : ''}">${stations[sid].substring(0,2)}</div>
@@ -336,7 +330,8 @@
 
     function switchView(m) {
         document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-'+m).classList.add('active');
+        const btn = document.getElementById('btn-'+m);
+        if(btn) btn.classList.add('active');
         document.getElementById('view-list').style.display = m === 'list' ? 'block' : 'none';
         document.getElementById('view-tv').classList.toggle('active', m === 'tv');
         document.getElementById('capture-area').style.background = m === 'tv' ? '#0f0f0f' : 'white';
@@ -352,9 +347,7 @@
         link.href = canvas.toDataURL();
         link.click();
     }
-
     window.onload = init;
 </script>
-
 </body>
 </html>
