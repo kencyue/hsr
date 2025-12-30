@@ -253,32 +253,49 @@
         } catch (e) { alert("連線失敗"); } finally { btn.disabled = false; btn.textContent = "查詢班次"; }
     }
 
-    function renderResults(data) {
+function renderResults(data) {
+        // 1. 確保正確抓到資料陣列
         const trains = data.train_item || data.data || [];
         const list = document.getElementById('view-list');
         const tv = document.getElementById('tv-rows');
-        const limit = parseInt(document.getElementById('limit').value);
-        list.innerHTML = ''; tv.innerHTML = '';
+        
+        // 2. 抓取使用者選擇的筆數限制
+        const limitVal = parseInt(document.getElementById('limit').value);
+        
+        list.innerHTML = ''; 
+        tv.innerHTML = '';
+
         const isSouth = currentStart < currentEnd;
         const theme = isSouth ? 'theme-south' : 'theme-north';
+        
         document.getElementById('tv-header').className = `tv-header-bar ${theme}`;
         document.getElementById('tv-header').innerHTML = `<span>${isSouth ? '南下' : '北上'}</span><span style="font-size:0.8rem;">${new Date().toLocaleTimeString()} UPDATED</span>`;
+        
         const sortedKeys = Object.keys(stations).map(Number).sort((a,b) => isSouth ? a-b : b-a);
 
-        trains.slice(0, limit === -1 ? trains.length : limit).forEach((t, index) => {
+        // 3. 處理筆數切片邏輯：如果是 -1 就拿全部 (trains.length)，否則拿 limitVal
+        const sliceEnd = (limitVal === -1) ? trains.length : limitVal;
+        const displayTrains = trains.slice(0, sliceEnd);
+
+        // 如果真的沒資料，給個提示
+        if (displayTrains.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">該時段查無更多班次</div>';
+            return;
+        }
+
+        displayTrains.forEach((t, index) => {
             const actualStops = (t.station_info || []).filter(s => s.departure_time && s.departure_time !== "--:--");
             const stopIds = actualStops.map(s => parseInt(s.station_no));
             
-            // --- 修正：列表過濾停靠站包含抵達站 ---
             const stopNamesList = actualStops.filter(s => { 
                 const id = parseInt(s.station_no); 
-                // 過濾出：在出發站之後，且包含抵達站的所有站點
                 return isSouth ? (id > currentStart && id <= currentEnd) : (id < currentStart && id >= currentEnd); 
             }).map(s => s.name);
             
             const isDirect = stopNamesList.length === 1 && stopNamesList[0] === stations[currentEnd];
             const durationText = t.duration || calcDuration(t.departure_time, t.destination_time || t.arrival_time);
 
+            // 列表渲染
             const card = document.createElement('div');
             card.className = 'result-card';
             card.onclick = () => card.classList.toggle('selected');
@@ -298,6 +315,7 @@
                 </div>`;
             list.appendChild(card);
 
+            // 電視牆渲染
             const row = document.createElement('div');
             row.className = 'tv-row';
             row.onclick = () => row.classList.toggle('selected');
