@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高鐵時刻表</title>
+    <title>高鐵時刻表 - 精準停靠版</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -58,25 +58,15 @@
             background: #f8f9fa; font-size: 1rem; outline: none; color: #333;
         }
 
-        /* 修正「現在」按鈕樣式 */
         .btn-now { 
-            background: #eee; 
-            border: 1px solid var(--border-color); 
-            color: #555; 
-            padding: 0 15px; 
-            border-radius: 10px; 
-            font-size: 0.85rem; /* 縮小字體 */
-            cursor: pointer; 
-            white-space: nowrap; 
-            font-weight: 500;
-            transition: 0.2s;
+            background: #eee; border: 1px solid var(--border-color); color: #555; 
+            padding: 0 15px; border-radius: 10px; font-size: 0.85rem; 
+            cursor: pointer; white-space: nowrap; font-weight: 500;
         }
-        .btn-now:active { background: #ddd; }
 
         .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* 彈窗與電視牆樣式 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
         .modal-active { display: flex; }
         .modal-card { background: white; width: 98%; max-width: 800px; border-radius: 12px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -84,7 +74,7 @@
         .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
         #view-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; }
         .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; }
         .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); }
 
@@ -99,25 +89,24 @@
         .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); }
         .tv-info-col { padding: 12px 15px; display: grid; grid-template-columns: 80px 100px 80px; align-items: center; border-right: 1px solid #333; }
         .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; }
-        .tv-map-col { position: relative; display: flex; align-items: center; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
+        .tv-map-col { position: relative; display: flex; align-items: center; padding: 0 15px; overflow-x: auto; }
         .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 350px; position: relative; padding-top: 10px; }
         .map-line { position: absolute; top: 78%; left: 5px; right: 5px; height: 2px; background: var(--tv-line); }
         .station-point { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 28px; }
-        .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 42px; letter-spacing: 1px; }
+        .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 42px; }
         .st-name.current { color: var(--tv-text-yellow); font-weight: bold; }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tv-dot-off); margin-top: 6px; }
         .dot.stop { border: 1px solid #fff; }
         .theme-north .dot.stop { background: var(--tv-dot-north); box-shadow: 0 0 8px var(--tv-dot-north); }
         .theme-south .dot.stop { background: var(--tv-dot-south); box-shadow: 0 0 8px var(--tv-dot-south); }
 
-        .toggle-btn { background: #eee; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+        .toggle-btn { background: #eee; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
         .toggle-btn.active { background: var(--primary); color: white; }
-        .share-btn { background: #00b894; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+        .share-btn { background: #00b894; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 
         @media (max-width: 650px) {
             .tv-row { grid-template-columns: 1fr; }
             .tv-info-col { border-right: none; border-bottom: 1px solid #333; }
-            .tv-map-col { padding: 15px; }
         }
     </style>
 </head>
@@ -171,7 +160,7 @@
                 <button class="toggle-btn" id="btn-tv" onclick="switchView('tv')"><i class="fas fa-tv"></i> 電視牆</button>
                 <button class="share-btn" onclick="shareAsImage()"><i class="fas fa-camera"></i> 分享</button>
             </div>
-            <button onclick="closeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer; color:#999;">&times;</button>
+            <button onclick="closeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
         </div>
         <div class="modal-body" id="capture-area">
             <div id="view-list"></div>
@@ -186,7 +175,6 @@
 </div>
 
 <script>
-    // 使用 Vercel Rewrite 代理後的路徑
     const API_URL = "/api/thsr";
     const TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjZXJ0IjoiOTczOTIyYjg1OTkxZTE3ZDUyZGU0MDE1ZmIzNjU5ZmIzM2M4ODkzOSIsImlhdCI6MTc2Njk4ODQ2OX0.G9SVSfeuon2Rf7iSLmKfzEAXLK_DVz3ZsPQeB1xzSRc";
     
@@ -264,8 +252,7 @@
             renderResults(response.data);
             document.getElementById('resultModal').classList.add('modal-active');
         } catch (e) {
-            console.error(e);
-            alert("連線失敗，請檢查 Vercel Rewrite 設定");
+            alert("連線失敗，請確認部署環境");
         } finally {
             btn.disabled = false;
             btn.textContent = "查詢班次";
@@ -288,13 +275,15 @@
         const sortedKeys = Object.keys(stations).map(Number).sort((a,b) => isSouth ? a-b : b-a);
 
         trains.slice(0, limit === -1 ? trains.length : limit).forEach(t => {
-            const stopIds = (t.station_info || []).map(s => parseInt(s.station_no));
-            const stopNames = (t.station_info || []).filter(s => {
+            // --- 核心修正：過濾真正有點靠的車站 ---
+            const actualStops = (t.station_info || []).filter(s => s.departure_time && s.departure_time !== "" && s.departure_time !== "--:--");
+            const stopIds = actualStops.map(s => parseInt(s.station_no));
+            
+            const stopNames = actualStops.filter(s => {
                 const id = parseInt(s.station_no);
                 return isSouth ? (id > currentStart && id < currentEnd) : (id < currentStart && id > currentEnd);
             }).map(s => s.name);
 
-            // 列表
             list.innerHTML += `
                 <div class="result-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -306,14 +295,13 @@
                     </div>
                 </div>`;
 
-            // TV
             let mapNodes = '';
             sortedKeys.forEach(sid => {
-                const isActive = stopIds.includes(sid) || sid === currentStart || sid === currentEnd;
+                const isStationAtStop = stopIds.includes(sid);
                 mapNodes += `
                     <div class="station-point">
                         <div class="st-name ${sid === currentStart ? 'current' : ''}">${stations[sid].substring(0,2)}</div>
-                        <div class="dot ${isActive ? 'stop' : ''}"></div>
+                        <div class="dot ${isStationAtStop ? 'stop' : ''}"></div>
                     </div>`;
             });
 
@@ -321,7 +309,7 @@
                 <div class="tv-row">
                     <div class="tv-info-col">
                         <div style="color:white; font-family:Roboto;">${t.id || t.train_no}</div>
-                        <div style="color:white; font-size:1.1rem;">${stations[currentEnd]}</div>
+                        <div style="color:white;">${stations[currentEnd]}</div>
                         <div class="tv-time">${t.departure_time}</div>
                     </div>
                     <div class="tv-map-col ${theme}">
