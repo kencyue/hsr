@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高鐵時刻表 - 網頁版</title>
+    <title>高鐵時刻表</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
@@ -15,7 +16,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* 保留你原始的 CSS 樣式 */
         :root {
             --primary: #ff6600;
             --bg-color: #f8f9fa;
@@ -37,7 +37,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); }
 
-        .app-container { height: 100%; max-width: 600px; margin: 0 auto; background: white; display: flex; flex-direction: column; position: relative; }
+        .app-container { height: 100%; max-width: 600px; margin: 0 auto; background: white; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
         .app-header { padding: 15px; text-align: center; border-bottom: 1px solid var(--border-color); background: white; z-index: 10; }
         .app-header h1 { margin: 0; font-size: 1.2rem; color: var(--text-dark); display: flex; align-items: center; justify-content: center; gap: 8px; }
         
@@ -58,50 +58,66 @@
             background: #f8f9fa; font-size: 1rem; outline: none; color: #333;
         }
 
-        .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
-        .btn-submit:disabled { background: #ccc; }
+        /* 修正「現在」按鈕樣式 */
+        .btn-now { 
+            background: #eee; 
+            border: 1px solid var(--border-color); 
+            color: #555; 
+            padding: 0 15px; 
+            border-radius: 10px; 
+            font-size: 0.85rem; /* 縮小字體 */
+            cursor: pointer; 
+            white-space: nowrap; 
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .btn-now:active { background: #ddd; }
 
-        /* 彈窗樣式與電視牆樣式 (與原本相同) */
+        .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* 彈窗與電視牆樣式 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
         .modal-active { display: flex; }
         .modal-card { background: white; width: 98%; max-width: 800px; border-radius: 12px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
-        .modal-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: white; }
+        .modal-header { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
         #view-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 15px; padding: 15px; background: white; }
-        .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; }
-        .train-times { font-size: 1.2rem; font-weight: bold; }
+        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; }
+        .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); }
 
-        /* TV 牆特定樣式 */
         #view-tv { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--tv-bg); }
         #view-tv.active { display: flex; }
         .tv-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .tv-header-bar { padding: 10px 15px; color: white; display: flex; justify-content: space-between; }
-        .tv-header-bar.theme-north { background: var(--tv-header-north); }
-        .tv-header-bar.theme-south { background: var(--tv-header-south); }
+        .tv-header-bar { padding: 10px 15px; color: white; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .tv-header-bar.theme-north { background: var(--tv-header-north); border-bottom: 3px solid #0099ff; }
+        .tv-header-bar.theme-south { background: var(--tv-header-south); border-bottom: 3px solid #2ecc71; }
+        
         .tv-scroll-area { flex: 1; overflow-y: auto; }
         .tv-row { display: grid; grid-template-columns: 260px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); }
-        .tv-info-col { padding: 10px 15px; display: grid; grid-template-columns: 80px 100px 80px; align-items: center; }
-        .tv-time { color: var(--tv-text-yellow); font-weight: bold; }
-        .tv-map-col { position: relative; display: flex; align-items: center; padding: 10px; overflow-x: auto; }
-        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 350px; position: relative; }
-        .map-line { position: absolute; top: 75%; left: 0; right: 0; height: 2px; background: var(--tv-line); }
+        .tv-info-col { padding: 12px 15px; display: grid; grid-template-columns: 80px 100px 80px; align-items: center; border-right: 1px solid #333; }
+        .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; }
+        .tv-map-col { position: relative; display: flex; align-items: center; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
+        .map-container { display: flex; justify-content: space-between; width: 100%; min-width: 350px; position: relative; padding-top: 10px; }
+        .map-line { position: absolute; top: 78%; left: 5px; right: 5px; height: 2px; background: var(--tv-line); }
         .station-point { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 28px; }
-        .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 40px; }
-        .st-name.current { color: var(--tv-text-yellow); }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tv-dot-off); margin-top: 5px; }
+        .st-name { font-size: 0.7rem; color: #888; writing-mode: vertical-rl; height: 42px; letter-spacing: 1px; }
+        .st-name.current { color: var(--tv-text-yellow); font-weight: bold; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tv-dot-off); margin-top: 6px; }
         .dot.stop { border: 1px solid #fff; }
-        .theme-north .dot.stop { background: var(--tv-dot-north); }
-        .theme-south .dot.stop { background: var(--tv-dot-south); }
+        .theme-north .dot.stop { background: var(--tv-dot-north); box-shadow: 0 0 8px var(--tv-dot-north); }
+        .theme-south .dot.stop { background: var(--tv-dot-south); box-shadow: 0 0 8px var(--tv-dot-south); }
 
-        .toggle-btn { background: #eee; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        .toggle-btn { background: #eee; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
         .toggle-btn.active { background: var(--primary); color: white; }
-        .share-btn { background: #00b894; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+        .share-btn { background: #00b894; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
 
-        @media (max-width: 600px) {
+        @media (max-width: 650px) {
             .tv-row { grid-template-columns: 1fr; }
-            .tv-info-col { border-bottom: 1px solid #333; }
+            .tv-info-col { border-right: none; border-bottom: 1px solid #333; }
+            .tv-map-col { padding: 15px; }
         }
     </style>
 </head>
@@ -128,9 +144,9 @@
         </div>
 
         <div style="display:flex; gap:10px;">
-            <div style="flex:2; position:relative; display:flex; gap:5px;">
-                <input type="text" id="query_time" placeholder="選擇時間">
-                <button type="button" class="btn-submit" style="width:auto; padding:0 15px;" onclick="setCurrentTime()">現在</button>
+            <div style="flex:2; display:flex; gap:8px;">
+                <input type="text" id="query_time">
+                <button type="button" class="btn-now" onclick="setCurrentTime()">現在</button>
             </div>
             <div style="flex:1">
                 <select id="limit">
@@ -150,12 +166,12 @@
 <div id="resultModal" class="modal-overlay">
     <div class="modal-card">
         <div class="modal-header">
-            <div style="display:flex; gap:10px;">
-                <button class="toggle-btn active" id="btn-list" onclick="switchView('list')">列表</button>
-                <button class="toggle-btn" id="btn-tv" onclick="switchView('tv')">電視牆</button>
-                <button class="share-btn" onclick="shareAsImage()">分享</button>
+            <div style="display:flex; gap:8px;">
+                <button class="toggle-btn active" id="btn-list" onclick="switchView('list')"><i class="fas fa-list"></i> 列表</button>
+                <button class="toggle-btn" id="btn-tv" onclick="switchView('tv')"><i class="fas fa-tv"></i> 電視牆</button>
+                <button class="share-btn" onclick="shareAsImage()"><i class="fas fa-camera"></i> 分享</button>
             </div>
-            <button onclick="closeModal()" style="background:none; border:none; font-size:1.5rem;">&times;</button>
+            <button onclick="closeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer; color:#999;">&times;</button>
         </div>
         <div class="modal-body" id="capture-area">
             <div id="view-list"></div>
@@ -170,7 +186,8 @@
 </div>
 
 <script>
-    const API_URL = "https://superiorapis-creator.cteam.com.tw/manager/feature/proxy/9521ab51a9e8/pub_9521b06baee0";
+    // 使用 Vercel Rewrite 代理後的路徑
+    const API_URL = "/api/thsr";
     const TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjZXJ0IjoiOTczOTIyYjg1OTkxZTE3ZDUyZGU0MDE1ZmIzNjU5ZmIzM2M4ODkzOSIsImlhdCI6MTc2Njk4ODQ2OX0.G9SVSfeuon2Rf7iSLmKfzEAXLK_DVz3ZsPQeB1xzSRc";
     
     const stations = {
@@ -180,83 +197,75 @@
 
     let currentStart = 0;
     let currentEnd = 0;
-    let flatpickrInstance;
+    let fp;
 
-    // 初始化介面
     function init() {
-        const createGrid = (containerId, type) => {
-            const container = document.getElementById(containerId);
-            Object.entries(stations).forEach(([id, name]) => {
-                const div = document.createElement('div');
-                div.className = 'station-bubble';
-                div.textContent = name;
-                div.dataset.id = id;
-                div.onclick = () => selectStation(type, parseInt(id));
-                container.appendChild(div);
+        const renderGrid = (id, type) => {
+            const el = document.getElementById(id);
+            Object.entries(stations).forEach(([sid, name]) => {
+                const b = document.createElement('div');
+                b.className = 'station-bubble';
+                b.textContent = name;
+                b.dataset.id = sid;
+                b.onclick = () => {
+                    if (type === 'start') {
+                        currentStart = parseInt(sid);
+                        if(currentEnd === currentStart) currentEnd = 0;
+                    } else {
+                        currentEnd = parseInt(sid);
+                        if(currentStart === currentEnd) currentStart = 0;
+                    }
+                    updateUI();
+                };
+                el.appendChild(b);
             });
         };
-        createGrid('startGrid', 'start');
-        createGrid('endGrid', 'end');
+        renderGrid('startGrid', 'start');
+        renderGrid('endGrid', 'end');
 
-        flatpickrInstance = flatpickr("#query_time", {
+        fp = flatpickr("#query_time", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
             locale: "zh_tw",
             defaultDate: new Date(),
-            time_24hr: true
+            time_24hr: true,
+            disableMobile: "true"
         });
     }
 
-    function selectStation(type, id) {
-        if (type === 'start') {
-            currentStart = id;
-            if (currentEnd === id) currentEnd = 0;
-        } else {
-            currentEnd = id;
-            if (currentStart === id) currentStart = 0;
-        }
-        updateVisuals();
-    }
-
-    function updateVisuals() {
-        document.querySelectorAll('#startGrid .station-bubble').forEach(el => 
-            el.classList.toggle('active', parseInt(el.dataset.id) === currentStart));
-        document.querySelectorAll('#endGrid .station-bubble').forEach(el => 
-            el.classList.toggle('active', parseInt(el.dataset.id) === currentEnd));
+    function updateUI() {
+        document.querySelectorAll('#startGrid .station-bubble').forEach(b => b.classList.toggle('active', parseInt(b.dataset.id) === currentStart));
+        document.querySelectorAll('#endGrid .station-bubble').forEach(b => b.classList.toggle('active', parseInt(b.dataset.id) === currentEnd));
     }
 
     function swapStations() {
         [currentStart, currentEnd] = [currentEnd, currentStart];
-        updateVisuals();
+        updateUI();
     }
 
-    function setCurrentTime() { flatpickrInstance.setDate(new Date()); }
+    function setCurrentTime() { fp.setDate(new Date()); }
 
-    // 調用 API
     async function fetchSchedule() {
         if (!currentStart || !currentEnd) return alert("請選擇起訖站");
-        if (currentStart === currentEnd) return alert("起迄站不能相同");
-
         const btn = document.getElementById('searchBtn');
         btn.disabled = true;
-        btn.textContent = "查詢中...";
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 查詢中...';
 
         try {
-            const queryTime = document.getElementById('query_time').value;
-            const isoTime = new Date(queryTime).toISOString();
-            
+            const dt = new Date(document.getElementById('query_time').value);
             const response = await axios.post(API_URL, {
                 start_station_no: currentStart,
                 end_station_no: currentEnd,
-                datetime: isoTime
+                datetime: dt.toISOString()
             }, {
                 headers: { 'token': TOKEN, 'Content-Type': 'application/json' }
             });
 
             renderResults(response.data);
             document.getElementById('resultModal').classList.add('modal-active');
-        } catch (error) {
-            alert("查詢失敗：" + (error.response?.data?.message || error.message));
+        } catch (e) {
+            console.error(e);
+            alert("連線失敗，請檢查 Vercel Rewrite 設定");
         } finally {
             btn.disabled = false;
             btn.textContent = "查詢班次";
@@ -265,88 +274,69 @@
 
     function renderResults(data) {
         const trains = data.train_item || data.data || [];
-        const listContainer = document.getElementById('view-list');
-        const tvRows = document.getElementById('tv-rows');
-        const tvHeader = document.getElementById('tv-header');
+        const list = document.getElementById('view-list');
+        const tv = document.getElementById('tv-rows');
         const limit = parseInt(document.getElementById('limit').value);
         
-        listContainer.innerHTML = '';
-        tvRows.innerHTML = '';
-
+        list.innerHTML = ''; tv.innerHTML = '';
         const isSouth = currentStart < currentEnd;
-        const themeClass = isSouth ? "theme-south" : "theme-north";
-        tvHeader.className = `tv-header-bar ${themeClass}`;
-        tvHeader.innerHTML = `<span>${isSouth ? '南下 Southbound' : '北上 Northbound'}</span><span>${new Date().toLocaleTimeString()} UPDATED</span>`;
+        const theme = isSouth ? 'theme-south' : 'theme-north';
+        
+        document.getElementById('tv-header').className = `tv-header-bar ${theme}`;
+        document.getElementById('tv-header').innerHTML = `<span>${isSouth ? '南下 Southbound' : '北上 Northbound'}</span><span style="font-size:0.8rem; font-weight:normal;">${new Date().toLocaleTimeString()} UPDATED</span>`;
 
-        // 排序車站 (TV 牆用)
-        const sortedStationKeys = Object.keys(stations).map(Number);
-        if (!isSouth) sortedStationKeys.sort((a, b) => b - a);
+        const sortedKeys = Object.keys(stations).map(Number).sort((a,b) => isSouth ? a-b : b-a);
 
-        let count = 0;
-        trains.forEach(train => {
-            if (limit !== -1 && count >= limit) return;
-            count++;
+        trains.slice(0, limit === -1 ? trains.length : limit).forEach(t => {
+            const stopIds = (t.station_info || []).map(s => parseInt(s.station_no));
+            const stopNames = (t.station_info || []).filter(s => {
+                const id = parseInt(s.station_no);
+                return isSouth ? (id > currentStart && id < currentEnd) : (id < currentStart && id > currentEnd);
+            }).map(s => s.name);
 
-            // 停靠站處理
-            const stopIds = (train.station_info || []).map(s => parseInt(s.station_no));
-            const stopNames = (train.station_info || [])
-                .filter(s => {
-                    const sid = parseInt(s.station_no);
-                    return isSouth ? (sid > currentStart && sid < currentEnd) : (sid < currentStart && sid > currentEnd);
-                })
-                .map(s => s.name);
-
-            const stopsStr = stopNames.length ? stopNames.join(' <i class="fas fa-caret-right"></i> ') : "直達";
-
-            // 1. 渲染列表視圖
-            listContainer.innerHTML += `
+            // 列表
+            list.innerHTML += `
                 <div class="result-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span class="train-id-pill">${train.id || train.train_no}</span>
-                            <small style="color:#888; margin-left:10px;">${train.duration || ''}</small>
-                        </div>
-                        <div class="train-times">${train.departure_time} ➝ ${train.destination_time || train.arrival_time}</div>
+                        <span class="train-id-pill">${t.id || t.train_no}</span>
+                        <div class="train-times">${t.departure_time} ➝ ${t.destination_time || t.arrival_time}</div>
                     </div>
-                    <div style="margin-top:10px; font-size:0.9rem; color:#666; border-top:1px dashed #eee; padding-top:8px;">
-                        <span style="background:#eee; padding:2px 6px; border-radius:4px; margin-right:8px;">停靠</span> ${stopsStr}
+                    <div style="margin-top:10px; font-size:0.85rem; color:#666;">
+                        <span style="background:#eee; padding:2px 6px; border-radius:4px;">停靠</span> ${stopNames.length ? stopNames.join(' > ') : '直達'}
                     </div>
                 </div>`;
 
-            // 2. 渲染 TV 視圖
-            let mapHtml = '';
-            sortedStationKeys.forEach(sid => {
-                const isStop = stopIds.includes(sid) || sid === currentStart || sid === currentEnd;
-                mapHtml += `
+            // TV
+            let mapNodes = '';
+            sortedKeys.forEach(sid => {
+                const isActive = stopIds.includes(sid) || sid === currentStart || sid === currentEnd;
+                mapNodes += `
                     <div class="station-point">
                         <div class="st-name ${sid === currentStart ? 'current' : ''}">${stations[sid].substring(0,2)}</div>
-                        <div class="dot ${isStop ? 'stop' : ''}"></div>
+                        <div class="dot ${isActive ? 'stop' : ''}"></div>
                     </div>`;
             });
 
-            tvRows.innerHTML += `
+            tv.innerHTML += `
                 <div class="tv-row">
                     <div class="tv-info-col">
-                        <div style="color:white; font-size:1.2rem;">${train.id || train.train_no}</div>
-                        <div style="color:white;">${stations[currentEnd]}</div>
-                        <div class="tv-time">${train.departure_time}</div>
+                        <div style="color:white; font-family:Roboto;">${t.id || t.train_no}</div>
+                        <div style="color:white; font-size:1.1rem;">${stations[currentEnd]}</div>
+                        <div class="tv-time">${t.departure_time}</div>
                     </div>
-                    <div class="tv-map-col ${themeClass}">
-                        <div class="map-container">
-                            <div class="map-line"></div>
-                            ${mapHtml}
-                        </div>
+                    <div class="tv-map-col ${theme}">
+                        <div class="map-container"><div class="map-line"></div>${mapNodes}</div>
                     </div>
                 </div>`;
         });
     }
 
-    function switchView(mode) {
+    function switchView(m) {
         document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + mode).classList.add('active');
-        document.getElementById('view-list').style.display = mode === 'list' ? 'block' : 'none';
-        document.getElementById('view-tv').classList.toggle('active', mode === 'tv');
-        document.getElementById('capture-area').style.background = mode === 'tv' ? '#0f0f0f' : 'white';
+        document.getElementById('btn-'+m).classList.add('active');
+        document.getElementById('view-list').style.display = m === 'list' ? 'block' : 'none';
+        document.getElementById('view-tv').classList.toggle('active', m === 'tv');
+        document.getElementById('capture-area').style.background = m === 'tv' ? '#0f0f0f' : 'white';
     }
 
     function closeModal() { document.getElementById('resultModal').classList.remove('modal-active'); }
@@ -355,12 +345,13 @@
         const area = document.getElementById('capture-area');
         const canvas = await html2canvas(area, { backgroundColor: getComputedStyle(area).backgroundColor, scale: 2 });
         const link = document.createElement('a');
-        link.download = 'thsr.png';
+        link.download = `THSR_${Date.now()}.png`;
         link.href = canvas.toDataURL();
         link.click();
     }
 
     window.onload = init;
 </script>
+
 </body>
 </html>
