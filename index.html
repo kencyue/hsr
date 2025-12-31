@@ -18,6 +18,7 @@
     <style>
         :root {
             --primary: #ff6600;
+            --primary-dark: #e65c00;
             --danger: #d63031;
             --bg-color: #f8f9fa;
             --text-dark: #2d3436;
@@ -78,13 +79,14 @@
         .train-duration { font-size: 0.85rem; color: #888; margin-left: 8px; font-weight: 500; }
         .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); }
         
-        /* 購票按鈕樣式 */
+        /* 購票按鈕優化 */
         .btn-buy { 
-            background: var(--text-dark); color: white; border: none; padding: 6px 12px; 
-            border-radius: 8px; font-size: 0.8rem; font-weight: bold; cursor: pointer; 
-            display: flex; align-items: center; gap: 4px; transition: 0.2s;
+            background: transparent; color: var(--primary); border: 1.5px solid var(--primary); 
+            padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; 
+            cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s;
         }
-        .btn-buy:active { transform: scale(0.9); background: var(--primary); }
+        .btn-buy:hover { background: var(--primary); color: white; }
+        .btn-buy:active { transform: scale(0.9); }
 
         .card-footer { margin-top: 10px; font-size: 0.85rem; color: #666; display: flex; align-items: center; overflow: hidden; }
         .tag-base { padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 8px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
@@ -113,13 +115,6 @@
         
         .tv-row { display: grid; grid-template-columns: 240px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 85px; cursor: pointer; position: relative; }
         .tv-row.selected { background: var(--highlight-tv); }
-
-        /* 電視牆購票按鈕 */
-        .tv-buy-btn {
-            position: absolute; right: 10px; top: 10px; background: rgba(255,255,255,0.1);
-            color: var(--tv-text-yellow); border: 1px solid var(--tv-text-yellow);
-            padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; z-index: 5;
-        }
 
         .tv-info-col { padding: 15px; display: grid; grid-template-columns: 70px 1fr 70px; align-items: center; border-right: 1px solid #333; gap: 5px; }
         .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; text-align: right; }
@@ -286,7 +281,7 @@
         // 整理參數
         const qVal = document.getElementById('query_time').value;
         const trainDate = qVal.split(' ')[0]; // yyyy-mm-dd
-        const formattedTrainNumber = trainNo.toString().padStart(4, '0');
+        const formattedNumber = trainNo.toString().padStart(4, '0');
 
         const params = {
             start_station: stations[currentStart],
@@ -368,7 +363,7 @@
             const isDirect = stopNamesList.length === 1 && stopNamesList[0] === stations[currentEnd];
             const durationText = t.duration || calcDuration(depTime, arrTime);
 
-            // 列表渲染：加入購票按鈕
+            // 列表渲染：加入優化後的購票按鈕
             const card = document.createElement('div');
             card.className = 'result-card';
             card.innerHTML = `
@@ -377,22 +372,22 @@
                         <span class="train-id-pill">${trainNo}</span>
                         <span class="train-duration">${durationText}</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="train-times">${depTime} ➝ ${arrTime}</div>
-                        <button class="btn-buy" onclick="event.stopPropagation(); redirectToBooking('${trainNo}', '${depTime}')">
-                            <i class="fas fa-ticket-alt"></i> 購票
-                        </button>
-                    </div>
+                    <div class="train-times">${depTime} ➝ ${arrTime}</div>
                 </div>
-                <div class="card-footer" onclick="this.parentElement.classList.toggle('selected')">
-                    ${isDirect ? '<span class="tag-base tag-direct">直達</span>' : '<span class="tag-base tag-stop">停靠</span>'}
-                    <div class="stops-scroll">
-                        ${stopNamesList.join('<span class="stop-sep">•</span>')}
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <div class="card-footer" style="margin-top:0; flex:1;" onclick="this.parentElement.parentElement.classList.toggle('selected')">
+                        ${isDirect ? '<span class="tag-base tag-direct">直達</span>' : '<span class="tag-base tag-stop">停靠</span>'}
+                        <div class="stops-scroll">
+                            ${stopNamesList.join('<span class="stop-sep">•</span>')}
+                        </div>
                     </div>
+                    <button class="btn-buy" onclick="event.stopPropagation(); redirectToBooking('${trainNo}', '${depTime}')">
+                        <i class="fas fa-ticket-alt"></i> 購票
+                    </button>
                 </div>`;
             list.appendChild(card);
 
-            // 電視牆渲染
+            // 電視牆渲染：移除購票按鈕
             const row = document.createElement('div');
             row.className = 'tv-row';
             let mapNodes = '';
@@ -404,7 +399,6 @@
                     </div>`;
             });
             row.innerHTML = `
-                <button class="tv-buy-btn" onclick="event.stopPropagation(); redirectToBooking('${trainNo}', '${depTime}')">購票</button>
                 <div class="tv-info-col" onclick="this.parentElement.classList.toggle('selected')">
                     <div style="color:white;">${trainNo}</div>
                     <div style="color:white; font-size:0.9rem; white-space:nowrap;">${stations[currentStart]}➝${stations[currentEnd]}</div>
@@ -446,7 +440,7 @@
                 const clone = item.cloneNode(true);
                 clone.classList.remove('selected');
                 // 移除分享圖中的購票按鈕
-                const buyBtn = clone.querySelector('.btn-buy, .tv-buy-btn');
+                const buyBtn = clone.querySelector('.btn-buy');
                 if(buyBtn) buyBtn.remove();
                 tempContainer.appendChild(clone);
             });
@@ -454,7 +448,7 @@
             if (currentView === 'tv') tempContainer.appendChild(document.getElementById('tv-header').cloneNode(true));
             const contentClone = container.cloneNode(true);
             // 移除分享圖中的所有購票按鈕
-            contentClone.querySelectorAll('.btn-buy, .tv-buy-btn').forEach(b => b.remove());
+            contentClone.querySelectorAll('.btn-buy').forEach(b => b.remove());
             tempContainer.appendChild(contentClone);
         }
 
