@@ -72,23 +72,24 @@
         .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
         #view-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .result-card { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; padding: 15px; background: white; cursor: pointer; transition: 0.2s; position: relative; }
+        .result-card { border: 1px solid #eee; border-radius: 12px; margin-bottom: 15px; padding: 18px; background: white; cursor: pointer; transition: 0.2s; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .result-card.selected { background: var(--highlight-light); border-color: var(--primary); }
 
-        .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; font-size: 0.9rem; }
+        .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 10px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; font-size: 0.9rem; }
         .train-duration { font-size: 0.85rem; color: #888; margin-left: 8px; font-weight: 500; }
-        .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); }
+        .train-times { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); }
         
-        /* 購票按鈕優化 */
+        /* 購票按鈕樣式 */
         .btn-buy { 
-            background: transparent; color: var(--primary); border: 1.5px solid var(--primary); 
-            padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; 
-            cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s;
+            background: var(--primary); color: white; border: none; 
+            padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; 
+            cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.2);
         }
-        .btn-buy:hover { background: var(--primary); color: white; }
-        .btn-buy:active { transform: scale(0.9); }
+        .btn-buy:hover { background: var(--primary-dark); }
+        .btn-buy:active { transform: scale(0.95); }
 
-        .card-footer { margin-top: 10px; font-size: 0.85rem; color: #666; display: flex; align-items: center; overflow: hidden; }
+        .card-footer { margin-top: 12px; font-size: 0.85rem; color: #666; display: flex; align-items: center; overflow: hidden; }
         .tag-base { padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 8px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
         .tag-stop { background: #eee; color: #666; }
         .tag-direct { background: var(--danger); color: white; }
@@ -135,11 +136,13 @@
         .toggle-btn.active { background: var(--primary); color: white; }
         .share-btn { background: #00b894; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 
-        @media (max-width: 650px) {
-            .tv-row { grid-template-columns: 1fr; min-height: auto; }
-            .tv-info-col { border-right: none; border-bottom: 1px solid #333; padding: 10px 15px; }
-            .tv-map-col { padding: 15px 10px 20px 10px; }
+        /* 導購狀態覆蓋層 */
+        .booking-overlay { 
+            position: absolute; inset: 0; background: rgba(255,255,255,0.95); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 50; border-radius: 12px; animation: fadeIn 0.2s;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -253,7 +256,6 @@
         return h > 0 ? `${h}小時${m}分` : `${m}分`;
     }
 
-    // 取得 TDX 購票 Access Token
     async function getTdxToken() {
         if (tdxToken) return tdxToken;
         const params = new URLSearchParams({
@@ -273,37 +275,54 @@
         }
     }
 
-    // 執行購票導購
-    async function redirectToBooking(trainNo, depTime) {
-        const token = await getTdxToken();
-        if (!token) return alert("無法連線至 TDX 驗證伺服器");
+    async function redirectToBooking(trainNo, depTime, cardElement) {
+        // 先顯示處理中的覆蓋層，防止點擊沒反應
+        const overlay = document.createElement('div');
+        overlay.className = 'booking-overlay';
+        overlay.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary); font-size:1.5rem;"></i><div style="margin-top:10px; font-size:0.8rem; font-weight:bold; color:#666;">獲取訂票連結中...</div>';
+        cardElement.appendChild(overlay);
 
-        // 整理參數
+        const token = await getTdxToken();
+        if (!token) {
+            overlay.innerHTML = '<div style="color:var(--danger); font-size:0.8rem; font-weight:bold;">驗證失敗，請檢查金鑰</div>';
+            setTimeout(() => overlay.remove(), 2000);
+            return;
+        }
+
         const qVal = document.getElementById('query_time').value;
-        const trainDate = qVal.split(' ')[0]; // yyyy-mm-dd
+        const trainDate = qVal.split(' ')[0]; 
         const formattedNumber = trainNo.toString().padStart(4, '0');
 
-        const params = {
+        const queryParams = new URLSearchParams({
             start_station: stations[currentStart],
             end_station: stations[currentEnd],
             train_date: trainDate,
             train_time: depTime,
             train_number: formattedNumber
-        };
+        });
 
-        const queryStr = new URLSearchParams(params).toString();
-        const url = `https://tdx.transportdata.tw/api/maas-thsr/booking/deeplink/direct/hsr?${queryStr}`;
+        const url = `https://tdx.transportdata.tw/api/maas-thsr/booking/deeplink/direct/hsr?${queryParams.toString()}`;
 
         try {
             const res = await axios.get(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            
             if (res.data.result === "success" && res.data.data?.[0]?.deeplink) {
-                // 直接嘗試在新分頁開啟導購連結
-                window.open(res.data.data[0].deeplink, '_blank');
+                const deeplink = res.data.data[0].deeplink;
+                // 成功後顯示手動開啟按鈕，解決彈窗攔截問題
+                overlay.innerHTML = `
+                    <a href="${deeplink}" target="_blank" class="btn-buy" style="background:#00b894; box-shadow: 0 4px 10px rgba(0,184,148,0.2);">
+                        <i class="fas fa-external-link-alt"></i> 開啟訂票頁面
+                    </a>
+                    <button onclick="this.parentElement.remove()" style="margin-top:8px; border:none; background:none; color:#888; font-size:0.7rem; text-decoration:underline; cursor:pointer;">取消</button>
+                `;
+                // 嘗試直接開啟 (可能會被擋，但沒關係，按鈕就在那)
+                window.open(deeplink, '_blank');
             } else {
-                alert("該班次目前無法取得訂票連結");
+                const errorMsg = res.data.error?.msg || "車次不開放導購";
+                overlay.innerHTML = `<div style="color:var(--danger); font-size:0.7rem; padding:0 10px; text-align:center;"><b>API 訊息：</b><br>${errorMsg}</div><button onclick="this.parentElement.remove()" style="margin-top:8px; background:#666; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.7rem;">關閉</button>`;
             }
         } catch (e) {
-            alert("導引訂票失敗，請確認該車次是否仍有座位或已過期。");
+            overlay.innerHTML = `<div style="color:var(--danger); font-size:0.7rem;">導引失敗 (網路或權限問題)</div><button onclick="this.parentElement.remove()" style="margin-top:8px; background:#666; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.7rem;">關閉</button>`;
         }
     }
 
@@ -334,7 +353,6 @@
 
         const isSouth = currentStart < currentEnd;
         const theme = isSouth ? 'theme-south' : 'theme-north';
-        
         document.getElementById('tv-header').className = `tv-header-bar ${theme}`;
         document.getElementById('tv-header').innerHTML = `<span>${isSouth ? '南下' : '北上'}</span><span style="font-size:0.8rem;">${new Date().toLocaleTimeString()} UPDATED</span>`;
         
@@ -351,43 +369,36 @@
             const trainNo = t.id || t.train_no;
             const depTime = t.departure_time;
             const arrTime = t.destination_time || t.arrival_time;
-
             const actualStops = (t.station_info || []).filter(s => s.departure_time && s.departure_time !== "--:--");
             const stopIds = actualStops.map(s => parseInt(s.station_no));
-            
             const stopNamesList = actualStops.filter(s => { 
                 const id = parseInt(s.station_no); 
                 return isSouth ? (id > currentStart && id <= currentEnd) : (id < currentStart && id >= currentEnd); 
             }).map(s => s.name);
-            
             const isDirect = stopNamesList.length === 1 && stopNamesList[0] === stations[currentEnd];
             const durationText = t.duration || calcDuration(depTime, arrTime);
 
-            // 列表渲染：加入優化後的購票按鈕
             const card = document.createElement('div');
             card.className = 'result-card';
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center;">
-                        <span class="train-id-pill">${trainNo}</span>
-                        <span class="train-duration">${durationText}</span>
-                    </div>
-                    <div class="train-times">${depTime} ➝ ${arrTime}</div>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                    <div class="card-footer" style="margin-top:0; flex:1;" onclick="this.parentElement.parentElement.classList.toggle('selected')">
-                        ${isDirect ? '<span class="tag-base tag-direct">直達</span>' : '<span class="tag-base tag-stop">停靠</span>'}
-                        <div class="stops-scroll">
-                            ${stopNamesList.join('<span class="stop-sep">•</span>')}
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; align-items:center;">
+                            <span class="train-id-pill">${trainNo}</span>
+                            <span class="train-duration">${durationText}</span>
                         </div>
+                        <div class="train-times">${depTime} ➝ ${arrTime}</div>
                     </div>
-                    <button class="btn-buy" onclick="event.stopPropagation(); redirectToBooking('${trainNo}', '${depTime}')">
+                    <button class="btn-buy" onclick="event.stopPropagation(); redirectToBooking('${trainNo}', '${depTime}', this.parentElement.parentElement)">
                         <i class="fas fa-ticket-alt"></i> 購票
                     </button>
+                </div>
+                <div class="card-footer" onclick="this.parentElement.classList.toggle('selected')">
+                    ${isDirect ? '<span class="tag-base tag-direct">直達</span>' : '<span class="tag-base tag-stop">停靠</span>'}
+                    <div class="stops-scroll">${stopNamesList.join('<span class="stop-sep">•</span>')}</div>
                 </div>`;
             list.appendChild(card);
 
-            // 電視牆渲染：移除購票按鈕
             const row = document.createElement('div');
             row.className = 'tv-row';
             let mapNodes = '';
@@ -426,20 +437,16 @@
         const btn = document.getElementById('shareBtn');
         const container = document.getElementById(currentView === 'list' ? 'view-list' : 'tv-rows');
         const selectedItems = container.querySelectorAll('.selected');
-        
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
-        
         const tempContainer = document.createElement('div');
         tempContainer.style.background = (currentView === 'tv') ? '#0f0f0f' : 'white';
         tempContainer.style.width = container.offsetWidth + 'px';
         tempContainer.style.padding = '20px';
-        
         if (selectedItems.length > 0) {
             if (currentView === 'tv') tempContainer.appendChild(document.getElementById('tv-header').cloneNode(true));
             selectedItems.forEach(item => {
                 const clone = item.cloneNode(true);
                 clone.classList.remove('selected');
-                // 移除分享圖中的購票按鈕
                 const buyBtn = clone.querySelector('.btn-buy');
                 if(buyBtn) buyBtn.remove();
                 tempContainer.appendChild(clone);
@@ -447,45 +454,26 @@
         } else {
             if (currentView === 'tv') tempContainer.appendChild(document.getElementById('tv-header').cloneNode(true));
             const contentClone = container.cloneNode(true);
-            // 移除分享圖中的所有購票按鈕
             contentClone.querySelectorAll('.btn-buy').forEach(b => b.remove());
             tempContainer.appendChild(contentClone);
         }
-
         document.body.appendChild(tempContainer);
         tempContainer.style.position = 'absolute';
         tempContainer.style.top = '-9999px';
         tempContainer.style.left = '-9999px';
-
         try {
-            const canvas = await html2canvas(tempContainer, { 
-                backgroundColor: getComputedStyle(tempContainer).backgroundColor, 
-                scale: 2, 
-                useCORS: true
-            });
-
+            const canvas = await html2canvas(tempContainer, { backgroundColor: getComputedStyle(tempContainer).backgroundColor, scale: 2, useCORS: true });
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             const file = new File([blob], 'THSR_Schedule.png', { type: 'image/png' });
-
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: '高鐵時刻表',
-                    text: '這是我選好的班次'
-                });
+                await navigator.share({ files: [file], title: '高鐵時刻表', text: '這是我選好的班次' });
             } else {
                 const link = document.createElement('a');
                 link.download = `THSR_${Date.now()}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
             }
-        } catch (e) {
-            console.error(e);
-            alert("操作失敗");
-        } finally {
-            document.body.removeChild(tempContainer);
-            btn.innerHTML = '<i class="fas fa-share-nodes"></i> 分享畫面';
-        }
+        } catch (e) { alert("操作失敗"); } finally { document.body.removeChild(tempContainer); btn.innerHTML = '<i class="fas fa-share-nodes"></i> 分享畫面'; }
     }
 
     window.onload = init;
