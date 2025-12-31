@@ -69,10 +69,27 @@
         .result-card.selected { background: var(--highlight-light); border-color: var(--primary); }
         .train-id-pill { background: #fff5f0; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: 'Roboto'; font-size: 0.9rem; }
         .train-duration { font-size: 0.85rem; color: #888; margin-left: 8px; font-weight: 500; }
-        .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); }
+        .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
        
-        .card-header { position: relative; display: flex; justify-content: space-between; align-items: center; padding-right: 110px; /* 為按鈕預留空間 */ min-height: 50px; }
-        .card-header-left { display: flex; align-items: center; }
+        /* 新增：購票按鈕樣式（緊湊版） */
+        .booking-btn-inline {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        .booking-btn-inline:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+       
         .card-footer { margin-top: 10px; font-size: 0.85rem; color: #666; display: flex; align-items: center; overflow: hidden; }
         .tag-base { padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 8px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
         .tag-stop { background: #eee; color: #666; }
@@ -87,26 +104,7 @@
         }
         .stops-scroll::-webkit-scrollbar { display: none; }
         .stop-sep { color: #ddd; margin: 0 5px; font-weight: bold; }
-        
-        /* 調整後的快速購票按鈕 */
-        .booking-btn { 
-            position: absolute; 
-            top: 50%; 
-            right: 15px; 
-            transform: translateY(-50%); 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            padding: 8px 16px; 
-            border-radius: 8px; 
-            font-size: 0.9rem; 
-            font-weight: bold; 
-            cursor: pointer; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            white-space: nowrap;
-        }
-        .booking-btn:disabled { background: #ccc; cursor: not-allowed; }
-        
+       
         #view-tv { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--tv-bg); }
         #view-tv.active { display: flex; }
         .tv-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -144,7 +142,6 @@
 </head>
 <body>
 <div class="app-container">
-    <!-- 原有內容不變 -->
     <div class="app-header">
         <h1><i class="fas fa-train-subway" style="color:var(--primary)"></i> 高鐵時刻表</h1>
     </div>
@@ -204,12 +201,11 @@
 <input type="text" id="copyInput" style="position:absolute; left:-9999px;">
 
 <script>
-    // 原有所有變數與函數不變（API_URL, TOKEN, stations, CLIENT_ID, CLIENT_SECRET, getToken, copyToClipboard, getBookingDeeplink 等）
-
     const API_URL = "/api/thsr";
     const TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjZXJ0IjoiOTczOTIyYjg1OTkxZTE3ZDUyZGU0MDE1ZmIzNjU5ZmIzM2M4ODkzOSIsImlhdCI6MTc2Njk4ODQ2OX0.G9SVSfeuon2Rf7iSLmKfzEAXLK_DVz3ZsPQeB1xzSRc";
     const stations = { 1: "南港", 2: "台北", 3: "板橋", 4: "桃園", 5: "新竹", 6: "苗栗", 7: "台中", 8: "彰化", 9: "雲林", 10: "嘉義", 11: "台南", 12: "左營" };
     
+    // === TDX 直連導購邏輯 ===
     const CLIENT_ID = 'jingsyuan-04869429-5932-4aaf';
     const CLIENT_SECRET = '7d65414a-2d50-4604-a527-f94f4c8eb735';
     let cachedToken = '';
@@ -253,7 +249,7 @@
         const token = await getToken();
         if (!token) {
             btn.disabled = false;
-            btn.textContent = '快速購票';
+            btn.textContent = '購票';
             return;
         }
         try {
@@ -287,11 +283,10 @@
             alert('取得購票連結失敗：' + e.message);
         } finally {
             btn.disabled = false;
-            btn.textContent = '快速購票';
+            btn.textContent = '購票';
         }
     }
-
-    // 其餘 init、updateUI、swapStations 等函數保持不變...
+    // === 結束 ===
 
     let currentStart = 0, currentEnd = 0, fp, currentView = 'list';
     function init() {
@@ -344,7 +339,6 @@
             document.getElementById('resultModal').classList.add('modal-active');
         } catch (e) { alert("連線失敗"); } finally { btn.disabled = false; btn.textContent = "查詢班次"; }
     }
-
     function renderResults(data) {
         const trains = data.train_item || data.data || [];
         const list = document.getElementById('view-list');
@@ -385,20 +379,22 @@
             const durationText = t.duration || calcDuration(t.departure_time, t.destination_time || t.arrival_time);
             const trainNo = (t.id || t.train_no).toString();
 
-            // ==== 調整後的列表卡片結構 ====
+            // 列表渲染 - 購票按鈕放在時間同一行
             const card = document.createElement('div');
             card.className = 'result-card';
             card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') card.classList.toggle('selected'); };
             card.innerHTML = `
-                <div class="card-header">
-                    <div class="card-header-left">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center;">
                         <span class="train-id-pill">${trainNo}</span>
                         <span class="train-duration">${durationText}</span>
                     </div>
-                    <div class="train-times">${t.departure_time} ➝ ${t.destination_time || t.arrival_time}</div>
-                    <button class="booking-btn" onclick="getBookingDeeplink('${trainNo}', '${queryDate}', '${t.departure_time}', '${startStationName}', '${endStationName}'); event.stopPropagation();">
-                        快速購票
-                    </button>
+                    <div class="train-times">
+                        ${t.departure_time} ➝ ${t.destination_time || t.arrival_time}
+                        <button class="booking-btn-inline" onclick="getBookingDeeplink('${trainNo}', '${queryDate}', '${t.departure_time}', '${startStationName}', '${endStationName}'); event.stopPropagation();">
+                            購票
+                        </button>
+                    </div>
                 </div>
                 <div class="card-footer">
                     ${isDirect ? '<span class="tag-base tag-direct">直達</span>' : '<span class="tag-base tag-stop">停靠</span>'}
@@ -408,7 +404,7 @@
                 </div>`;
             list.appendChild(card);
 
-            // 電視牆部分保持不變...
+            // 電視牆渲染（保持原樣）
             const row = document.createElement('div');
             row.className = 'tv-row';
             row.onclick = () => row.classList.toggle('selected');
@@ -429,9 +425,6 @@
             tv.appendChild(row);
         });
     }
-
-    // switchView, closeModal, shareAsImage 保持不變（分享時一樣移除 .booking-btn）
-
     function switchView(m) {
         currentView = m;
         document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
@@ -458,14 +451,13 @@
             selectedItems.forEach(item => {
                 const clone = item.cloneNode(true);
                 clone.classList.remove('selected');
-                const bookingBtn = clone.querySelector('.booking-btn');
-                if (bookingBtn) bookingBtn.remove();
+                clone.querySelectorAll('.booking-btn-inline').forEach(b => b.remove());
                 tempContainer.appendChild(clone);
             });
         } else {
             if (currentView === 'tv') tempContainer.appendChild(document.getElementById('tv-header').cloneNode(true));
             const contentClone = container.cloneNode(true);
-            contentClone.querySelectorAll('.booking-btn').forEach(b => b.remove());
+            contentClone.querySelectorAll('.booking-btn-inline').forEach(b => b.remove());
             tempContainer.appendChild(contentClone);
         }
         document.body.appendChild(tempContainer);
