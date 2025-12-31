@@ -85,8 +85,24 @@
         }
         .stops-scroll::-webkit-scrollbar { display: none; }
         .stop-sep { color: #ddd; margin: 0 5px; font-weight: bold; }
-        .booking-btn { position: absolute; top: 15px; right: 15px; background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .booking-btn:disabled { background: #ccc; cursor: not-allowed; }
+.booking-btn { 
+    position: absolute; 
+    top: 52px;           /* 從 15px 改成 52px，讓它落在卡片中間偏下，避免跟時間重疊 */
+    right: 15px; 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    padding: 7px 11px; 
+    border-radius: 8px; 
+    font-size: 0.8rem;    /* 稍微縮小字型 */
+    font-weight: bold; 
+    cursor: pointer; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+}
+.booking-btn:disabled { 
+    background: #ccc; 
+    cursor: not-allowed; 
+}
         #view-tv { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--tv-bg); }
         #view-tv.active { display: flex; }
         .tv-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
