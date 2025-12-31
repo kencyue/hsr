@@ -79,14 +79,14 @@
         .train-duration { font-size: 0.85rem; color: #888; margin-left: 8px; font-weight: 500; }
         .train-times { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); }
         
-        /* 購票按鈕樣式 */
+        /* 購票按鈕優化：符合高鐵質感的設計 */
         .btn-buy { 
             background: var(--primary); color: white; border: none; 
-            padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; 
-            cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.2);
+            padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; 
+            cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.15);
         }
-        .btn-buy:hover { background: var(--primary-dark); }
+        .btn-buy:hover { background: var(--primary-dark); transform: translateY(-1px); }
         .btn-buy:active { transform: scale(0.95); }
 
         .card-footer { margin-top: 12px; font-size: 0.85rem; color: #666; display: flex; align-items: center; overflow: hidden; }
@@ -136,9 +136,9 @@
         .toggle-btn.active { background: var(--primary); color: white; }
         .share-btn { background: #00b894; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 
-        /* 導購狀態覆蓋層 */
+        /* 導購處理中的覆蓋層 */
         .booking-overlay { 
-            position: absolute; inset: 0; background: rgba(255,255,255,0.95); 
+            position: absolute; inset: 0; background: rgba(255,255,255,0.92); 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             z-index: 50; border-radius: 12px; animation: fadeIn 0.2s;
         }
@@ -270,35 +270,38 @@
             tdxToken = res.data.access_token;
             return tdxToken;
         } catch (e) {
-            console.error("TDX Auth Error", e);
             return null;
         }
     }
 
-    async function redirectToBooking(trainNo, depTime, cardElement) {
-        // 先顯示處理中的覆蓋層，防止點擊沒反應
+    async function redirectToBooking(rawTrainNo, depTime, cardElement) {
+        // 顯示處理中覆蓋層
         const overlay = document.createElement('div');
         overlay.className = 'booking-overlay';
-        overlay.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary); font-size:1.5rem;"></i><div style="margin-top:10px; font-size:0.8rem; font-weight:bold; color:#666;">獲取訂票連結中...</div>';
+        overlay.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary); font-size:1.5rem;"></i><div style="margin-top:8px; font-size:0.75rem; font-weight:bold; color:#666;">處理中...</div>';
         cardElement.appendChild(overlay);
 
         const token = await getTdxToken();
         if (!token) {
-            overlay.innerHTML = '<div style="color:var(--danger); font-size:0.8rem; font-weight:bold;">驗證失敗，請檢查金鑰</div>';
-            setTimeout(() => overlay.remove(), 2000);
+            overlay.innerHTML = '<div style="color:var(--danger); font-size:0.75rem; font-weight:bold;">驗證失敗</div>';
+            setTimeout(() => overlay.remove(), 1500);
             return;
         }
 
         const qVal = document.getElementById('query_time').value;
         const trainDate = qVal.split(' ')[0]; 
-        const formattedNumber = trainNo.toString().padStart(4, '0');
+        
+        // 修正：確保車次號碼是純數字且為 4 碼
+        const trainNumber = rawTrainNo.toString().replace(/\D/g, '').padStart(4, '0');
+        // 修正：確保時間是 HH:mm 格式
+        const trainTime = depTime.substring(0, 5);
 
         const queryParams = new URLSearchParams({
             start_station: stations[currentStart],
             end_station: stations[currentEnd],
             train_date: trainDate,
-            train_time: depTime,
-            train_number: formattedNumber
+            train_time: trainTime,
+            train_number: trainNumber
         });
 
         const url = `https://tdx.transportdata.tw/api/maas-thsr/booking/deeplink/direct/hsr?${queryParams.toString()}`;
@@ -308,21 +311,19 @@
             
             if (res.data.result === "success" && res.data.data?.[0]?.deeplink) {
                 const deeplink = res.data.data[0].deeplink;
-                // 成功後顯示手動開啟按鈕，解決彈窗攔截問題
                 overlay.innerHTML = `
-                    <a href="${deeplink}" target="_blank" class="btn-buy" style="background:#00b894; box-shadow: 0 4px 10px rgba(0,184,148,0.2);">
-                        <i class="fas fa-external-link-alt"></i> 開啟訂票頁面
+                    <a href="${deeplink}" target="_blank" class="btn-buy" style="background:#00b894; padding:10px 20px;">
+                        <i class="fas fa-external-link-alt"></i> 前往購票
                     </a>
-                    <button onclick="this.parentElement.remove()" style="margin-top:8px; border:none; background:none; color:#888; font-size:0.7rem; text-decoration:underline; cursor:pointer;">取消</button>
+                    <button onclick="this.parentElement.remove()" style="margin-top:10px; border:none; background:none; color:#888; font-size:0.7rem; text-decoration:underline; cursor:pointer;">取消</button>
                 `;
-                // 嘗試直接開啟 (可能會被擋，但沒關係，按鈕就在那)
                 window.open(deeplink, '_blank');
             } else {
                 const errorMsg = res.data.error?.msg || "車次不開放導購";
-                overlay.innerHTML = `<div style="color:var(--danger); font-size:0.7rem; padding:0 10px; text-align:center;"><b>API 訊息：</b><br>${errorMsg}</div><button onclick="this.parentElement.remove()" style="margin-top:8px; background:#666; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.7rem;">關閉</button>`;
+                overlay.innerHTML = `<div style="color:var(--danger); font-size:0.7rem; text-align:center; padding:0 10px;">${errorMsg}</div><button onclick="this.parentElement.remove()" style="margin-top:8px; background:#666; color:white; border:none; padding:4px 10px; border-radius:4px; font-size:0.7rem;">關閉</button>`;
             }
         } catch (e) {
-            overlay.innerHTML = `<div style="color:var(--danger); font-size:0.7rem;">導引失敗 (網路或權限問題)</div><button onclick="this.parentElement.remove()" style="margin-top:8px; background:#666; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:0.7rem;">關閉</button>`;
+            overlay.innerHTML = `<div style="color:var(--danger); font-size:0.7rem;">API 連線異常</div><button onclick="this.parentElement.remove()" style="margin-top:8px; background:#666; color:white; border:none; padding:4px 10px; border-radius:4px; font-size:0.7rem;">關閉</button>`;
         }
     }
 
@@ -366,7 +367,8 @@
         }
 
         displayTrains.forEach((t) => {
-            const trainNo = t.id || t.train_no;
+            // 修正：車次號碼優先取用 train_no
+            const trainNo = t.train_no || t.id;
             const depTime = t.departure_time;
             const arrTime = t.destination_time || t.arrival_time;
             const actualStops = (t.station_info || []).filter(s => s.departure_time && s.departure_time !== "--:--");
@@ -382,7 +384,7 @@
             card.className = 'result-card';
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; flex-direction:column; gap:6px;">
                         <div style="display:flex; align-items:center;">
                             <span class="train-id-pill">${trainNo}</span>
                             <span class="train-duration">${durationText}</span>
@@ -390,7 +392,7 @@
                         <div class="train-times">${depTime} ➝ ${arrTime}</div>
                     </div>
                     <button class="btn-buy" onclick="event.stopPropagation(); redirectToBooking('${trainNo}', '${depTime}', this.parentElement.parentElement)">
-                        <i class="fas fa-ticket-alt"></i> 購票
+                        <i class="fas fa-shopping-cart"></i> 購票
                     </button>
                 </div>
                 <div class="card-footer" onclick="this.parentElement.classList.toggle('selected')">
