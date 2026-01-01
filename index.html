@@ -13,7 +13,11 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script> <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -29,7 +33,7 @@
             --bubble-bg: #f1f2f6;
             --bubble-active-text: #ffffff;
             
-            /* TV Mode Colors (Keep consistent) */
+            /* TV Mode Colors */
             --tv-bg: #0f0f0f;
             --tv-header-north: #0056b3;
             --tv-header-south: #1e7e34;
@@ -48,7 +52,7 @@
 
         /* 暗色系 (Dark Mode) */
         [data-theme="dark"] {
-            --primary: #ff9f43; /* Lighter orange for dark bg */
+            --primary: #ff9f43;
             --danger: #ff6b6b;
             --bg-color: #121212;
             --text-dark: #ecf0f1;
@@ -61,11 +65,11 @@
             --highlight-light: rgba(255, 159, 67, 0.15);
         }
 
-        /* 亮色系/藍色系 (Light/Blue Mode) - 給予一種清新的感覺 */
+        /* 亮色系 (Light/Blue Mode) */
         [data-theme="light"] {
             --primary: #00a8ff;
             --danger: #e84118;
-            --bg-color: #f0f8ff; /* AliceBlue */
+            --bg-color: #f0f8ff;
             --text-dark: #2c3e50;
             --text-sub: #7f8c8d;
             --border-color: #dcdde1;
@@ -81,9 +85,8 @@
         
         .app-container { height: 100%; max-width: 600px; margin: 0 auto; background: var(--bg-color); display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.2); transition: background 0.3s; }
         
-        /* Header */
         .app-header { padding: 15px; text-align: center; border-bottom: 1px solid var(--border-color); background: var(--card-bg); z-index: 10; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
-        .app-header h1 { margin: 0; font-size: 1.2rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; padding-left: 24px; /* offset for icon */ }
+        .app-header h1 { margin: 0; font-size: 1.2rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; padding-left: 24px; }
         .settings-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-sub); cursor: pointer; padding: 5px; }
 
         .app-content { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; scrollbar-width: none; }
@@ -94,7 +97,7 @@
         .section-title { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 8px; font-weight: 500; }
         
         .station-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .station-bubble { background: var(--bubble-bg); color: var(--text-dark); height: var(--bubble-size); display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: 0.2s; user-select: none; border: 1px solid transparent; }
+        .station-bubble { background: var(--bubble-bg); color: var(--text-dark); height: var(--bubble-size); display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: 0.2s; user-select: none; border: 1px solid transparent; text-align: center; line-height: 1.1; overflow: hidden; }
         .station-bubble.active { background: var(--primary); color: var(--bubble-active-text); font-weight: bold; }
         
         .swap-wrapper { display: flex; justify-content: center; margin: -5px 0; position: relative; z-index: 5; }
@@ -117,7 +120,6 @@
         .modal-header { padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
-        /* Settings Modal Specific */
         .setting-group { margin-bottom: 15px; }
         .setting-label { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 5px; display: block; }
         
@@ -131,17 +133,7 @@
         .train-times { font-size: 1.2rem; font-weight: bold; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
         
         .booking-btn-inline {
-            background: var(--primary);
-            color: var(--bubble-active-text);
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            flex-shrink: 0;
+            background: var(--primary); color: var(--bubble-active-text); border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;
         }
         .booking-btn-inline:disabled { background: #ccc; cursor: not-allowed; }
         
@@ -150,9 +142,7 @@
         .tag-stop { background: var(--bubble-bg); color: var(--text-sub); }
         .tag-direct { background: var(--danger); color: white; }
         
-        .stops-scroll {
-            white-space: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; color: var(--text-sub); flex: 1;
-        }
+        .stops-scroll { white-space: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; color: var(--text-sub); flex: 1; }
         .stops-scroll::-webkit-scrollbar { display: none; }
         .stop-sep { color: var(--border-color); margin: 0 5px; font-weight: bold; }
         
@@ -163,14 +153,11 @@
         .tv-header-bar { padding: 10px 15px; color: white; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .tv-header-bar.theme-north { background: var(--tv-header-north); border-bottom: 3px solid #0099ff; }
         .tv-header-bar.theme-south { background: var(--tv-header-south); border-bottom: 3px solid #2ecc71; }
-        
         .tv-scroll-area { flex: 1; overflow-y: auto; }
-        
         .tv-row { display: grid; grid-template-columns: 240px 1fr; border-bottom: 1px solid #333; background: var(--tv-row-bg); min-height: 85px; cursor: pointer; }
         .tv-row.selected { background: var(--highlight-tv); }
         .tv-info-col { padding: 15px; display: grid; grid-template-columns: 70px 1fr 70px; align-items: center; border-right: 1px solid #333; gap: 5px; }
         .tv-time { color: var(--tv-text-yellow); font-weight: bold; font-size: 1.2rem; text-align: right; }
-        
         .tv-map-col { position: relative; display: flex; align-items: center; padding: 10px 5px; overflow: hidden; }
         .map-container { display: flex; justify-content: space-between; width: 100%; min-width: auto; position: relative; padding: 10px 0 15px 0; }
         .map-line { position: absolute; top: 60px; left: 0; right: 0; height: 2px; background: var(--tv-line); }
@@ -186,7 +173,6 @@
         .toggle-btn { background: var(--bubble-bg); border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; color: var(--text-dark); transition: 0.3s; }
         .toggle-btn.active { background: var(--primary); color: var(--bubble-active-text); }
         .share-btn { background: #00b894; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        
         .close-btn { background:none; border:none; font-size:1.8rem; cursor:pointer; color: var(--text-dark); }
         
         @media (max-width: 650px) {
@@ -266,8 +252,13 @@
                 <label class="setting-label" data-i18n="langLabel">語言 / Language</label>
                 <select id="langSelect" onchange="changeLanguage(this.value)">
                     <option value="zh-TW">繁體中文</option>
+                    <option value="zh-CN">简体中文</option>
                     <option value="en">English</option>
                     <option value="ja">日本語</option>
+                    <option value="ko">한국어 (Korean)</option>
+                    <option value="id">Bahasa (Indonesian)</option>
+                    <option value="vi">Tiếng Việt (Vietnamese)</option>
+                    <option value="th">ไทย (Thai)</option>
                 </select>
             </div>
             <div class="setting-group">
@@ -289,149 +280,126 @@
     // === i18n Data ===
     const i18nData = {
         "zh-TW": {
-            appTitle: "高鐵時刻表",
-            departure: "出發站",
-            arrival: "抵達站",
-            now: "現在",
-            limit5: "5筆",
-            limit10: "10筆",
-            limitAll: "全部",
-            search: "查詢班次",
-            viewList: "列表",
-            viewTV: "電視牆",
-            share: "分享",
-            settingsTitle: "設定",
-            langLabel: "語言",
-            themeLabel: "主題",
-            themeDefault: "預設 (橘色)",
-            themeDark: "暗黑模式",
-            themeLight: "明亮 (藍色)",
-            confirm: "確定",
-            searching: "查詢中...",
-            processing: "處理中...",
-            book: "購票",
-            direct: "直達",
-            stop: "停靠",
-            north: "北上",
-            south: "南下",
-            updated: "已更新",
-            hr: "小時",
-            min: "分",
-            selectStation: "請選擇起訖站",
-            connFail: "連線失敗",
-            noData: "該時段查無更多班次",
-            copySuccess: "購票連結已複製！",
-            linkTitle: "已取得購票連結！",
-            linkDesc: "點「確定」直接用手機開啟，點「取消」複製連結",
-            error: "錯誤",
-            flatpickrLocale: "zh_tw"
+            appTitle: "高鐵時刻表", departure: "出發站", arrival: "抵達站", now: "現在",
+            limit5: "5筆", limit10: "10筆", limitAll: "全部", search: "查詢班次",
+            viewList: "列表", viewTV: "電視牆", share: "分享", settingsTitle: "設定",
+            langLabel: "語言", themeLabel: "主題", themeDefault: "預設 (橘色)", themeDark: "暗黑模式", themeLight: "明亮 (藍色)",
+            confirm: "確定", searching: "查詢中...", processing: "處理中...", book: "購票", direct: "直達", stop: "停靠",
+            north: "北上", south: "南下", updated: "已更新", hr: "小時", min: "分",
+            selectStation: "請選擇起訖站", connFail: "連線失敗", noData: "該時段查無更多班次",
+            copySuccess: "購票連結已複製！", linkTitle: "已取得購票連結！", linkDesc: "點「確定」直接用手機開啟，點「取消」複製連結",
+            error: "錯誤", flatpickrLocale: "zh_tw"
+        },
+        "zh-CN": {
+            appTitle: "高铁时刻表", departure: "出发站", arrival: "到达站", now: "现在",
+            limit5: "5笔", limit10: "10笔", limitAll: "全部", search: "查询车次",
+            viewList: "列表", viewTV: "电视墙", share: "分享", settingsTitle: "设置",
+            langLabel: "语言", themeLabel: "主题", themeDefault: "默认 (橙色)", themeDark: "暗黑模式", themeLight: "明亮 (蓝色)",
+            confirm: "确定", searching: "查询中...", processing: "处理中...", book: "购票", direct: "直达", stop: "停靠",
+            north: "北上", south: "南下", updated: "已更新", hr: "小时", min: "分",
+            selectStation: "请选择起讫站", connFail: "连接失败", noData: "该时段查无更多车次",
+            copySuccess: "购票链接已复制！", linkTitle: "已获取购票链接！", linkDesc: "点击「确定」直接用手机开启，点击「取消」复制链接",
+            error: "错误", flatpickrLocale: "zh"
         },
         "en": {
-            appTitle: "HSR Schedule",
-            departure: "Departure",
-            arrival: "Arrival",
-            now: "Now",
-            limit5: "5 Trips",
-            limit10: "10 Trips",
-            limitAll: "All",
-            search: "Search",
-            viewList: "List",
-            viewTV: "TV Wall",
-            share: "Share",
-            settingsTitle: "Settings",
-            langLabel: "Language",
-            themeLabel: "Theme",
-            themeDefault: "Default (Orange)",
-            themeDark: "Dark Mode",
-            themeLight: "Light (Blue)",
-            confirm: "OK",
-            searching: "Searching...",
-            processing: "Processing...",
-            book: "Book",
-            direct: "Direct",
-            stop: "Stop",
-            north: "Northbound",
-            south: "Southbound",
-            updated: "UPDATED",
-            hr: "h",
-            min: "m",
-            selectStation: "Select stations first",
-            connFail: "Connection Failed",
-            noData: "No more trains found",
-            copySuccess: "Link Copied!",
-            linkTitle: "Booking Link Ready!",
-            linkDesc: "OK to open app, Cancel to copy link",
-            error: "Error",
-            flatpickrLocale: "default"
+            appTitle: "HSR Schedule", departure: "Departure", arrival: "Arrival", now: "Now",
+            limit5: "5 Trips", limit10: "10 Trips", limitAll: "All", search: "Search",
+            viewList: "List", viewTV: "TV Wall", share: "Share", settingsTitle: "Settings",
+            langLabel: "Language", themeLabel: "Theme", themeDefault: "Default (Orange)", themeDark: "Dark Mode", themeLight: "Light (Blue)",
+            confirm: "OK", searching: "Searching...", processing: "Processing...", book: "Book", direct: "Direct", stop: "Stop",
+            north: "Northbound", south: "Southbound", updated: "UPDATED", hr: "h", min: "m",
+            selectStation: "Select stations first", connFail: "Connection Failed", noData: "No more trains found",
+            copySuccess: "Link Copied!", linkTitle: "Booking Link Ready!", linkDesc: "OK to open app, Cancel to copy link",
+            error: "Error", flatpickrLocale: "default"
         },
         "ja": {
-            appTitle: "新幹線時刻表",
-            departure: "出発駅",
-            arrival: "到着駅",
-            now: "現在",
-            limit5: "5件",
-            limit10: "10件",
-            limitAll: "全て",
-            search: "検索",
-            viewList: "リスト",
-            viewTV: "掲示板",
-            share: "共有",
-            settingsTitle: "設定",
-            langLabel: "言語",
-            themeLabel: "テーマ",
-            themeDefault: "標準 (オレンジ)",
-            themeDark: "ダーク",
-            themeLight: "ライト (ブルー)",
-            confirm: "OK",
-            searching: "検索中...",
-            processing: "処理中...",
-            book: "予約",
-            direct: "直達",
-            stop: "停車",
-            north: "上り",
-            south: "下り",
-            updated: "更新",
-            hr: "時間",
-            min: "分",
-            selectStation: "駅を選択してください",
-            connFail: "接続失敗",
-            noData: "該当する列車はありません",
-            copySuccess: "リンクをコピーしました",
-            linkTitle: "予約リンク取得完了",
-            linkDesc: "OKでアプリを開く、キャンセルでコピー",
-            error: "エラー",
-            flatpickrLocale: "ja"
+            appTitle: "新幹線時刻表", departure: "出発駅", arrival: "到着駅", now: "現在",
+            limit5: "5件", limit10: "10件", limitAll: "全て", search: "検索",
+            viewList: "リスト", viewTV: "掲示板", share: "共有", settingsTitle: "設定",
+            langLabel: "言語", themeLabel: "テーマ", themeDefault: "標準 (オレンジ)", themeDark: "ダーク", themeLight: "ライト (ブルー)",
+            confirm: "OK", searching: "検索中...", processing: "処理中...", book: "予約", direct: "直達", stop: "停車",
+            north: "上り", south: "下り", updated: "更新", hr: "時間", min: "分",
+            selectStation: "駅を選択してください", connFail: "接続失敗", noData: "該当する列車はありません",
+            copySuccess: "リンクをコピーしました", linkTitle: "予約リンク取得完了", linkDesc: "OKでアプリを開く、キャンセルでコピー",
+            error: "エラー", flatpickrLocale: "ja"
+        },
+        "ko": {
+            appTitle: "고속철도 시간표", departure: "출발역", arrival: "도착역", now: "현재",
+            limit5: "5건", limit10: "10건", limitAll: "전체", search: "조회",
+            viewList: "목록", viewTV: "전광판", share: "공유", settingsTitle: "설정",
+            langLabel: "언어", themeLabel: "테마", themeDefault: "기본 (오렌지)", themeDark: "다크 모드", themeLight: "라이트 (블루)",
+            confirm: "확인", searching: "조회 중...", processing: "처리 중...", book: "예매", direct: "직통", stop: "정차",
+            north: "북행", south: "남행", updated: "업데이트됨", hr: "시간", min: "분",
+            selectStation: "출발/도착역을 선택하세요", connFail: "연결 실패", noData: "해당 시간대 열차 없음",
+            copySuccess: "링크 복사됨!", linkTitle: "예매 링크 생성됨", linkDesc: "앱 열기: 확인, 링크 복사: 취소",
+            error: "오류", flatpickrLocale: "ko"
+        },
+        "id": {
+            appTitle: "Jadwal HSR", departure: "Keberangkatan", arrival: "Kedatangan", now: "Sekarang",
+            limit5: "5 Trip", limit10: "10 Trip", limitAll: "Semua", search: "Cari",
+            viewList: "Daftar", viewTV: "Papan TV", share: "Bagikan", settingsTitle: "Pengaturan",
+            langLabel: "Bahasa", themeLabel: "Tema", themeDefault: "Default (Oranye)", themeDark: "Mode Gelap", themeLight: "Terang (Biru)",
+            confirm: "OK", searching: "Mencari...", processing: "Memproses...", book: "Pesan", direct: "Langsung", stop: "Berhenti",
+            north: "Ke Utara", south: "Ke Selatan", updated: "DIPERBARUI", hr: "jam", min: "mnt",
+            selectStation: "Pilih stasiun dulu", connFail: "Koneksi Gagal", noData: "Tidak ada kereta ditemukan",
+            copySuccess: "Tautan Disalin!", linkTitle: "Tautan Pemesanan Siap!", linkDesc: "OK untuk buka aplikasi, Batal untuk salin",
+            error: "Kesalahan", flatpickrLocale: "id"
+        },
+        "vi": {
+            appTitle: "Lịch trình HSR", departure: "Khởi hành", arrival: "Đến", now: "Hiện tại",
+            limit5: "5 Chuyến", limit10: "10 Chuyến", limitAll: "Tất cả", search: "Tìm kiếm",
+            viewList: "Danh sách", viewTV: "Bảng điện tử", share: "Chia sẻ", settingsTitle: "Cài đặt",
+            langLabel: "Ngôn ngữ", themeLabel: "Giao diện", themeDefault: "Mặc định (Cam)", themeDark: "Chế độ tối", themeLight: "Sáng (Xanh)",
+            confirm: "OK", searching: "Đang tìm...", processing: "Đang xử lý...", book: "Đặt vé", direct: "Trực tiếp", stop: "Dừng",
+            north: "Hướng Bắc", south: "Hướng Nam", updated: "CẬP NHẬT", hr: "giờ", min: "phút",
+            selectStation: "Vui lòng chọn ga", connFail: "Kết nối thất bại", noData: "Không tìm thấy chuyến tàu nào",
+            copySuccess: "Đã sao chép liên kết!", linkTitle: "Liên kết đặt vé đã sẵn sàng!", linkDesc: "OK để mở ứng dụng, Hủy để sao chép",
+            error: "Lỗi", flatpickrLocale: "vn"
+        },
+        "th": {
+            appTitle: "ตารางเวลา HSR", departure: "ต้นทาง", arrival: "ปลายทาง", now: "ตอนนี้",
+            limit5: "5 เที่ยว", limit10: "10 เที่ยว", limitAll: "ทั้งหมด", search: "ค้นหา",
+            viewList: "รายการ", viewTV: "ตารางทีวี", share: "แชร์", settingsTitle: "การตั้งค่า",
+            langLabel: "ภาษา", themeLabel: "ธีม", themeDefault: "ค่าเริ่มต้น (ส้ม)", themeDark: "โหมดมืด", themeLight: "สว่าง (ฟ้า)",
+            confirm: "ตกลง", searching: "กำลังค้นหา...", processing: "กำลังประมวลผล...", book: "จอง", direct: "ด่วน", stop: "จอด",
+            north: "ขึ้นเหนือ", south: "ลงใต้", updated: "อัปเดตแล้ว", hr: "ชม.", min: "น.",
+            selectStation: "เลือกสถานีก่อน", connFail: "การเชื่อมต่อล้มเหลว", noData: "ไม่พบเที่ยวรถ",
+            copySuccess: "คัดลอกลิงก์แล้ว!", linkTitle: "ลิงก์การจองพร้อมแล้ว!", linkDesc: "ตกลงเพื่อเปิดแอป, ยกเลิกเพื่อคัดลอกลิงก์",
+            error: "ข้อผิดพลาด", flatpickrLocale: "th"
         }
     };
 
     const stationsData = {
-        1: { zh: "南港", en: "Nangang", ja: "南港" },
-        2: { zh: "台北", en: "Taipei", ja: "台北" },
-        3: { zh: "板橋", en: "Banqiao", ja: "板橋" },
-        4: { zh: "桃園", en: "Taoyuan", ja: "桃園" },
-        5: { zh: "新竹", en: "Hsinchu", ja: "新竹" },
-        6: { zh: "苗栗", en: "Miaoli", ja: "苗栗" },
-        7: { zh: "台中", en: "Taichung", ja: "台中" },
-        8: { zh: "彰化", en: "Changhua", ja: "彰化" },
-        9: { zh: "雲林", en: "Yunlin", ja: "雲林" },
-        10: { zh: "嘉義", en: "Chiayi", ja: "嘉義" },
-        11: { zh: "台南", en: "Tainan", ja: "台南" },
-        12: { zh: "左營", en: "Zuoying", ja: "左営" }
+        1: { zh: "南港", cn: "南港", en: "Nangang", ja: "南港", ko: "난강" },
+        2: { zh: "台北", cn: "台北", en: "Taipei", ja: "台北", ko: "타이베이" },
+        3: { zh: "板橋", cn: "板桥", en: "Banqiao", ja: "板橋", ko: "반차오" },
+        4: { zh: "桃園", cn: "桃园", en: "Taoyuan", ja: "桃園", ko: "타오위안" },
+        5: { zh: "新竹", cn: "新竹", en: "Hsinchu", ja: "新竹", ko: "신주" },
+        6: { zh: "苗栗", cn: "苗栗", en: "Miaoli", ja: "苗栗", ko: "먀오리" },
+        7: { zh: "台中", cn: "台中", en: "Taichung", ja: "台中", ko: "타이중" },
+        8: { zh: "彰化", cn: "彰化", en: "Changhua", ja: "彰化", ko: "장화" },
+        9: { zh: "雲林", cn: "云林", en: "Yunlin", ja: "雲林", ko: "윈린" },
+        10: { zh: "嘉義", cn: "嘉义", en: "Chiayi", ja: "嘉義", ko: "자이" },
+        11: { zh: "台南", cn: "台南", en: "Tainan", ja: "台南", ko: "타이난" },
+        12: { zh: "左營", cn: "左营", en: "Zuoying", ja: "左営", ko: "쭤잉" }
     };
 
     let currentLang = localStorage.getItem('hsr_lang') || 'zh-TW';
     let currentTheme = localStorage.getItem('hsr_theme') || 'default';
     
-    // Helper function to get text
-    function t(key) { return i18nData[currentLang][key] || key; }
+    function t(key) { return i18nData[currentLang][key] || i18nData['en'][key] || key; }
+    
     function getStationName(id) { 
-        return stationsData[id] ? (stationsData[id][currentLang === 'zh-TW' ? 'zh' : currentLang] || stationsData[id].en) : ''; 
+        if (!stationsData[id]) return '';
+        const langMap = { 'zh-TW': 'zh', 'zh-CN': 'cn', 'ja': 'ja', 'ko': 'ko' };
+        const dataKey = langMap[currentLang];
+        // 如果是東南亞語系或找不到對應語言，預設使用英文
+        return stationsData[id][dataKey] || stationsData[id].en; 
     }
 
     const API_URL = "/api/thsr";
     const TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjZXJ0IjoiOTczOTIyYjg1OTkxZTE3ZDUyZGU0MDE1ZmIzNjU5ZmIzM2M4ODkzOSIsImlhdCI6MTc2Njk4ODQ2OX0.G9SVSfeuon2Rf7iSLmKfzEAXLK_DVz3ZsPQeB1xzSRc";
     
-    // === TDX Logic (Unchanged but using t()) ===
     const CLIENT_ID = 'jingsyuan-04869429-5932-4aaf';
     const CLIENT_SECRET = '7d65414a-2d50-4604-a527-f94f4c8eb735';
     let cachedToken = '';
@@ -469,12 +437,10 @@
             return;
         }
         try {
-            // TDX expects Traditional Chinese station names usually, but let's send what we have. 
-            // Note: API might strictly require ZH names. Let's map back to ZH for API call if needed.
-            // Safe approach: Convert display name back to ZH-TW strictly for API
+            // TDX API 需要繁體中文站名，無論介面顯示什麼語言，都轉回 zh-TW
             const getZhName = (name) => {
                 for(let k in stationsData) {
-                    if(stationsData[k].en === name || stationsData[k].ja === name || stationsData[k].zh === name) return stationsData[k].zh;
+                    if (Object.values(stationsData[k]).includes(name)) return stationsData[k].zh;
                 }
                 return name;
             };
@@ -508,15 +474,10 @@
     let currentStart = 0, currentEnd = 0, fp, currentView = 'list';
     
     function init() {
-        // Init Settings UI
         document.getElementById('langSelect').value = currentLang;
         document.getElementById('themeSelect').value = currentTheme;
         applySettings();
-
-        // Render Grids
         renderGrids();
-        
-        // Init Flatpickr
         initFlatpickr();
     }
 
@@ -622,7 +583,6 @@
             const actualStops = (tData.station_info || []).filter(s => s.departure_time && s.departure_time !== "--:--");
             const stopIds = actualStops.map(s => parseInt(s.station_no));
             
-            // Generate Stop Names List based on direction and current lang
             const stopNamesList = actualStops.filter(s => {
                 const id = parseInt(s.station_no);
                 return isSouth ? (id > currentStart && id <= currentEnd) : (id < currentStart && id >= currentEnd);
@@ -632,7 +592,6 @@
             const durationText = tData.duration || calcDuration(tData.departure_time, tData.destination_time || tData.arrival_time);
             const trainNo = (tData.id || tData.train_no).toString();
 
-            // Render List Card
             const card = document.createElement('div');
             card.className = 'result-card';
             card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') card.classList.toggle('selected'); };
@@ -657,7 +616,6 @@
                 </div>`;
             list.appendChild(card);
 
-            // Render TV Row
             const row = document.createElement('div');
             row.className = 'tv-row';
             row.onclick = () => row.classList.toggle('selected');
@@ -680,7 +638,6 @@
         });
     }
 
-    // === Settings Functions ===
     function openSettings() { document.getElementById('settingsModal').classList.add('modal-active'); }
     function closeSettings() { document.getElementById('settingsModal').classList.remove('modal-active'); }
     
@@ -688,10 +645,8 @@
         currentLang = lang;
         localStorage.setItem('hsr_lang', lang);
         applySettings();
-        // Re-init components that depend on lang
         renderGrids();
         initFlatpickr();
-        // Clear results if any to avoid mixed language
         document.getElementById('view-list').innerHTML = '';
         document.getElementById('tv-rows').innerHTML = '';
     }
@@ -703,23 +658,18 @@
     }
 
     function applySettings() {
-        // Apply Theme
         document.documentElement.setAttribute('data-theme', currentTheme);
-        
-        // Apply Language to Text Elements
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             if(i18nData[currentLang][key]) el.textContent = i18nData[currentLang][key];
+            else if(i18nData['en'][key]) el.textContent = i18nData['en'][key];
         });
-
-        // Update Option Texts specifically
         ['limit5', 'limit10', 'limitAll', 'themeDefault', 'themeDark', 'themeLight'].forEach(k => {
             const opt = document.querySelector(`option[data-i18n="${k}"]`);
-            if(opt) opt.textContent = i18nData[currentLang][k];
+            if(opt) opt.textContent = i18nData[currentLang][k] || i18nData['en'][k];
         });
     }
 
-    // === View Logic ===
     function switchView(m) {
         currentView = m;
         document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
@@ -742,7 +692,6 @@
         tempContainer.style.width = container.offsetWidth + 'px';
         tempContainer.style.padding = '20px';
         
-        // Clone Header for context
         if(currentView === 'tv') tempContainer.appendChild(document.getElementById('tv-header').cloneNode(true));
 
         if (selectedItems.length > 0) {
